@@ -6,33 +6,36 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-VERSION = '0.1.0-preview'
+from patch import VERSION
 SOURCE_FILES = [
-    'README.md', 'LICENSE', 'NOTICE.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
-    'patch.py', 'pe_resources.py', 'translations.txt', 'supported-build.json',
-    'pack.py', '.gitignore', 'SECURITY.md', '.github/CODEOWNERS',
+    'README.md', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
+    'patch.py', 'pe_resources.py', 'translations.txt', 'supported-build.json', 'build_directory.py',
+    'pack.py', '.gitignore', '.gitattributes', 'SECURITY.md', '.github/CODEOWNERS',
     '.github/dependabot.yml', '.github/workflows/check.yml',
-    'docs/findings.md', 'docs/release-v0.1.0-preview.md', 'tests/test_patch.py',
 ]
-PORTABLE_README = '''MidRadio English v0.1.0-preview
+SOURCE_FILES += sorted(path.relative_to(ROOT).as_posix() for directory in ('native', 'tests', 'docs')
+                       for path in (ROOT / directory).rglob('*')
+                       if path.is_file() and path.suffix.lower() in ('.py', '.cpp', '.h', '.c', '.def', '.md', '.ogg', '.m4a', '.mp3', '.wav'))
+PORTABLE_README = """MidRadio English + Directory 0.2.0
 
-Target: Windows 10 x64. User-confirmed working on Windows 11 x64.
-The original player is a 32-bit application running under WoW64.
+Windows 10 x64 target; also used on Windows 11 x64.
+Extract everything and run MidRadio-Directory.exe. No Python or installer needed.
+Keep CoreOriginal.dll, PlayerCore.dll, MidRadioDecode.exe, and Addins together.
 
-1. Close other copies of MidRadio Player.
-2. Extract this entire ZIP. Keep the Addins folder and all DLL/TBL files.
-3. Launch MidRadio-English.exe from the extracted folder.
-4. Use File > Open File to open a local music file.
+Use Open folder for an HTTP directory, double-click a folder to navigate,
+Play selected for one track, Play all for the current list, and right-click
+for Copy full URL. The default page is the Samsung SGH-D500 ringtone folder.
+English menus and graphical labels preserve the original Yamaha skin.
 
-No Python or installer is needed to launch this folder package.
-The original application may store preferences in the Windows registry.
-Some skin labels remain Japanese because they are embedded in bitmap images.
-Clean Windows 10 first-run dependencies have not been independently tested.
+Native Yamaha files, WAV and MP3 use Yamaha's original engine.
+OGG Vorbis and Windows-supported M4A audio use the separate bounded decoder.
+These extended codecs apply to audio opened through the directory seeker.
+Input tracks and converted PCM are cached in %TEMP%/MidRadio-Directory-cache.
+You can remove that cache after closing the player.
 
-Project and source: https://github.com/HeapJ4/yamahamdr-english
-Yamaha's original software/assets retain their original ownership and terms.
-See NOTICE.md and RELEASE-NOTES.md.
-'''
+Source: https://github.com/HeapJ4/yamahamdr-english
+See RELEASE-NOTES.md, NOTICE.md, THIRD_PARTY_NOTICES.md, and LICENSE.
+"""
 
 
 def sha256(path):
@@ -44,12 +47,12 @@ def archive(path, prefix, files, extra=None):
         raise ValueError(f'Refusing to overwrite archive: {path}')
     with zipfile.ZipFile(path, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as output:
         for name, file in sorted(files):
-            info = zipfile.ZipInfo(prefix + '/' + name, date_time=(2026, 10, 23, 0, 0, 0))
+            info = zipfile.ZipInfo(prefix + '/' + name, date_time=(2026, 11, 7, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             output.writestr(info, file.read_bytes())
         for name, text in sorted((extra or {}).items()):
-            info = zipfile.ZipInfo(prefix + '/' + name, date_time=(2026, 10, 23, 0, 0, 0))
+            info = zipfile.ZipInfo(prefix + '/' + name, date_time=(2026, 11, 7, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             output.writestr(info, text.encode('utf-8'))
@@ -71,32 +74,26 @@ def package(destination, portable=None):
     portable = portable.resolve()
     if (portable / 'BUILD-FAILED.txt').exists():
         raise ValueError('Refusing to package an incomplete player build')
-    report = json.loads((portable / 'english-build.json').read_text(encoding='utf-8'))
-    expected = json.loads((ROOT / 'supported-build.json').read_text(encoding='utf-8'))
-    if report['translated_fields'] != expected['translated_fields'] or len(report['files']) != len(expected['files']):
-        raise ValueError('Unexpected player build coverage')
-    expected_files = {entry['file']: entry for entry in expected['files']}
-    for entry in report['files']:
-        name = entry['file'].replace('\\', '/')
-        if name not in expected_files or entry['source_sha256'] != expected_files[name]['source_sha256']:
-            raise ValueError(f'Unexpected source build: {name}')
-        if sha256(portable / name) != entry['patched_sha256'] or not entry['non_resource_sections_unchanged']:
-            raise ValueError(f'Portable file failed verification: {name}')
-    if sha256(portable / 'MidRadio-English.exe') != sha256(portable / 'MidRadio.exe'):
-        raise ValueError('The explicit English launcher does not match the patched executable')
+    report = json.loads((portable / 'directory-build.json').read_text(encoding='utf-8'))
+    if report['version'] != VERSION or report['launcher'] != 'MidRadio-Directory.exe':
+        raise ValueError('This is not the intended English + Directory build')
+    required = {'MidRadio-Directory.exe', 'MidRadioDecode.exe', 'PlayerCore.dll', 'CoreOriginal.dll'}
+    if not required.issubset(report['files']) or 'Addins/OggFormat.dll' in report['files']:
+        raise ValueError('Wrong or experimental binary set')
     files = []
-    for path in portable.rglob('*'):
-        relative = path.relative_to(portable)
-        if not path.is_file() or path.is_symlink():
-            continue
-        if relative.parent.as_posix() not in ('.', 'Addins'):
-            continue
-        if path.suffix.lower() in ('.exe', '.dll', '.ocx', '.tbl') or relative.as_posix() == 'english-build.json':
-            files.append((relative.as_posix(), path))
-    for name in ('NOTICE.md',):
+    for name, expected in report['files'].items():
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('Unsafe file name in build report')
+        file = portable / relative
+        if file.is_symlink() or sha256(file) != expected:
+            raise ValueError('Portable file failed verification: ' + name)
+        files.append((name, file))
+    files.append(('directory-build.json', portable / 'directory-build.json'))
+    for name in ('NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE'):
         files.append((name, ROOT / name))
-    files.append(('RELEASE-NOTES.md', ROOT / 'docs/release-v0.1.0-preview.md'))
-    archive(destination / (prefix + '-windows-x64.zip'), 'MidRadio-English', files, {'README.txt': PORTABLE_README})
+    files.append(('RELEASE-NOTES.md', ROOT / 'docs/release-v0.2.0.md'))
+    archive(destination / (prefix + '-windows-x64.zip'), 'MidRadio-English-Directory', files, {'README.txt': PORTABLE_README})
 
 
 if __name__ == '__main__':
