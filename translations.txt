@@ -1,0 +1,482 @@
+ファイル(&F)|&File
+再生(&P)|&Playback
+表示(&V)|&View
+ヘルプ(&H)|&Help
+ファイルを開く(&O)...|&Open File...
+URLを開く(&U)...|Open &URL...
+終了(&X)|E&xit
+再生/一時停止(&P)|&Play/Pause
+停止(&S)|&Stop
+早戻し(&B)|Rewind (&B)
+早送り(&F)|Fast &Forward
+曲戻し(&M)|Previous Track (&M)
+曲送り(&N)|&Next Track
+全曲リピート(&X)|Repeat All (&X)
+一曲リピート(&Y)|Repeat One (&Y)
+リピートなし(&Z)|Repeat Off (&Z)
+ボリュームアップ(&U)|Volume &Up
+ボリュームダウン(&D)|Volume &Down
+キーアップ(&H)|Key Up (&H)
+キーダウン(&L)|Key Down (&L)
+テンポアップ(&T)|&Tempo Up
+テンポダウン(&R)|Tempo Down (&R)
+オプション(&O)|&Options
+オプション(&O)...|&Options...
+オプション...|Options...
+バージョン情報(&V)|About (&V)
+バージョン情報...|About...
+アップデートの確認(&U)|Check for &Updates
+MIDI出力先の選択(&M)...|&MIDI Output...
+楽器パート別ON/OFF(&U)...|Instrument Parts (&U)...
+再生開始タイミングの調整(&T)...|Playback &Timing...
+キャッシュのクリア(&C)...|&Clear Cache...
+プロキシサーバの設定(&P)...|&Proxy Server...
+スクリーンの選択(&S)|&Screen
+スクリーンの選択(&R)|Screen (&R)
+スクリーンの設定(&C)|Screen &Settings
+スクリーンを自動で表示する(&R)|Auto Show Screen (&R)
+スクリーン表示(&G)|Show Screen (&G)
+スキン(&S)|&Skin
+常に手前に表示する(&A)|&Always on Top
+プレーヤと切り離す(&D)|&Detach from Player
+プレーヤと切り離す(&S)|Separate from Player (&S)
+プレーヤと合体する(&U)|Join Player (&U)
+フルスクリーン(&F)|&Full Screen
+Web連動番組でHTMLを表示しない(&H)|Hide Linked &HTML
+カラオケ(&K)|&Karaoke
+ギター練習(&U)|Guitar Practice (&U)
+ミニカラオケ(&M)|&Mini Karaoke
+ミニ歌本(&Y)|Mini Songbook (&Y)
+歌本の設定(&U)...|Songbook Settings (&U)...
+歌本画面を自動で広くする(&T)|Auto Expand Songbook (&T)
+ガイドメロディーOff(&O)|Guide Melody &Off
+ガイドメロディー小(&Q)|Guide Melody &Quiet
+ガイドメロディー標準(&C)|Guide Melody Normal (&C)
+ガイドメロディー大(&G)|Guide Melody Loud (&G)
+文字設定(&T)...|&Text Settings...
+背景設定(&B)...|&Background Settings...
+歌詞と歌詞表示タイミング調整(&L)...|&Lyrics Timing...
+マイクレベル設定(&L)...|Mic &Level...
+カポタスト(&C)...|&Capo...
+マイリスト(&L)|My &Lists
+マイリスト(&L)...|My &Lists...
+履歴(&A)|History (&A)
+履歴(&A)...|History (&A)...
+サイト選択(&S)|&Select Site
+表示設定(&E)|Display Settings (&E)
+新しいリストの作成(&C)|&Create List
+新しいリストの作成(&W)|New List (&W)
+リストの削除(&D)|&Delete List
+リスト名の変更(&R)|&Rename List
+インポート(&I)|&Import
+エクスポート(&E)|&Export
+削除(&D)|&Delete
+コピー(&C)|&Copy
+切り取り(&T)|Cu&t
+貼り付け(&P)|&Paste
+曲の貼り付け(&P)|&Paste Track
+曲詳細情報(&J)|Track Details (&J)
+展開(&A)|Expand (&A)
+折りたたみ(&A)|Collapse (&A)
+サイトの削除(&D)...|&Delete Site...
+非表示(&H)|&Hide
+名前の変更(&M)|Rename (&M)
+新規(&N) |&New
+すべて(&A)|&All
+はい(&Y)|&Yes
+いいえ(&N)|&No
+ ファイルの種類(&T)|File &Type
+キャンセル|Cancel
+ｷｬﾝｾﾙ|Cancel
+閉じる|Close
+開く|Open
+設定|Settings
+設定...|Settings...
+設定ダイアログ|Settings
+オプション|Options
+一般|General
+ネットワーク|Network
+プロキシ|Proxy
+プロキシサーバーの設定|Proxy Settings
+プロキシサーバーのアドレス|Proxy server address
+ポート|Port
+プロキシをバイパスするサイトのリスト|Proxy bypass list
+プロキシサーバーを使用しない。|Do not use a proxy.
+プロキシサーバーを使用する。|Use a proxy server.
+Internet Explorer の設定を使用する。|Use Internet Explorer settings.
+Cookieを使用しない。|Do not use cookies.
+キャッシュのクリア|Clear Cache
+再生開始のタイミング|Playback Start Timing
+再生タイミングを自動調整する。|Adjust playback timing automatically.
+%のデータの到着を待ってから再生する。|% buffered before playback.
+常に手前に表示する。|Always on top.
+アドインの更新情報を通知する。|Notify me of add-in updates.
+インストーラの更新情報を通知する。|Notify me of installer updates.
+ＭＩＤＩ出力先の選択|MIDI Output
+MIDIデバイス|MIDI Device
+MIDIデバイスを使う|Use MIDI device
+内蔵ソフトシンセサイザー|Built-in Software Synthesizer
+内蔵ソフトシンセサイザーを使う|Use built-in software synthesizer
+サウンドエフェクトを使う|Use sound effects
+SMAFの再生周波数(Hz)|SMAF sample rate (Hz)
+最大同時発音数|Polyphony
+初期設定に戻す|Restore Defaults
+YAMAHA S-YXG2006LE セットアップ|YAMAHA S-YXG2006LE Setup
+リバーブ|Reverb
+コーラス|Chorus
+バリエーション|Variation
+エフェクト|Effects
+ミュート|Mute
+混合|Mix
+標準|Default
+全てオン|All On
+全てオフ|All Off
+楽器パートON/OFF設定|Instrument Parts On/Off
+パラメータを初期値に戻す（次回演奏時）。|Reset parameters on next playback.
+文字設定|Text Settings
+文字色|Text Color
+フォント|Font
+フォント名|Font Name
+縁取りの太さ|Outline Width
+グリーン系|Green
+ブルー系|Blue
+ユーザー設定|Custom
+カラー設定|Color Settings
+独　唱|Solo
+男　声|Male
+女　声|Female
+混　声|Mixed
+変化後|Highlight
+縁取り|Outline
+背景設定|Background Settings
+オン|On
+オフ|Off
+既定のフォルダ|Default folder
+フォルダを指定する|Choose folder
+フォルダを開く|Open folder
+背景画の設定|Background Settings
+背景画像フォルダ|Image Folder
+背景切り替え効果|Transition Effects
+サブフォルダの画像も表示する。|Include images in subfolders.
+スクリーンサイズに合わせて画像を表示する。|Fit images to screen.
+画像の切り替え間隔|Image change interval
+秒|seconds
+20 秒|20 seconds
+ピクセル|pixels
+スライドショーの設定(S)...|Slideshow Settings (&S)...
+歌詞と歌詞表示タイミングの調整|Lyrics Timing
+発音と歌詞表示のタイミング調整|Adjust lyrics timing relative to audio
+歌詞を早くする|Earlier lyrics
+歌詞を遅くする|Later lyrics
+マイクレベル設定|Microphone Level
+マイクレベル|Microphone Level
+エコーレベル|Echo Level
+（0～10）|(0-10)
+入力レベルメーター|Input Level Meter
+マイク入力レベル|Microphone Input Level
+マイク入力レベル調整|Microphone Level Adjustment
+カラオケ|Karaoke
+ギター練習|Guitar Practice
+ミニカラオケ|Mini Karaoke
+ミニ歌本|Mini Songbook
+ネットで歌本|Online Songbook
+パソカラホーダイ|Pasokara Hodai
+カポタスト|Capo
+カポタスト設定|Capo Settings
+カポタストをつける|Use capo
+カポタストを|Capo at
+フレットにつけて|fret, play in
+で演奏する。|key.
+→カポタストとは？|About capos
+プレビュー|Preview
+スクロール方法|Scrolling
+行単位で素早くスクロール|Fast line scroll
+行単位でシフト|Shift by line
+全体をゆっくりスクロール|Slow continuous scroll
+ダイアグラムモード|Diagram Mode
+ギター|Guitar
+ ギター| Guitar
+ウクレレ|Ukulele
+ ウクレレ| Ukulele
+背景表示|Background
+背景色を指定しない。|No background color.
+背景色を指定する。|Use background color.
+表示設定|Display Settings
+ダイアグラム パネルを表示する。|Show diagram panel.
+ミニ ダイアグラムを表示する。|Show mini diagrams.
+歌詞のルビを表示する。|Show reading guides (furigana).
+ダイアグラムの表示設定|Diagram Settings
+指番号を表示する。|Show finger numbers.
+ルート・度数を表示する。|Show roots and intervals.
+ダイアグラム|Diagram
+ ダイアグラム表示 | Diagram Display 
+コード・ダイアグラムの定義|Chord Diagram Definition
+判定　メッセージ|Result Message
+作詞：|Lyrics:
+作曲：|Music:
+標準スキン|Default Skin
+<標準スキン>|<Default Skin>
+歌本アドイン|Songbook Add-in
+キー|Key
+カポ|Capo
+カポなし|No Capo
+オリジナル|Original
+コード|Chord
+ / 曲: | / Music: 
+ / 詞: | / Lyrics: 
+ GUID入力してください。| Enter a GUID.
+ヘルプ|Help
+ホームページ|Home Page
+MidRadioホームページ|MidRadio Home Page
+MidRadio Control について|About MidRadio Control
+MidRadio Control について...|About MidRadio Control...
+アーティスト|Artist
+アーティスト名|Artist
+曲名|Title
+ジャンル|Genre
+データの種類|Data Type
+種類|Type
+詳細情報|Details
+詳細...|Details...
+情報|Information
+選択|Select
+曲選択|Select Track
+チャンネル選択|Select Channel
+サービス選択|Select Service
+サイト選択|Select Site
+サイトの削除|Delete Site
+検索|Search
+新着|New Arrivals
+新規|New
+ランキング|Ranking
+お気に入り|Favorites
+マイリスト|My Lists
+マイリスト (%ld)|My List (%ld)
+履歴|History
+予約|Queue
+予約確認|View Queue
+すぐに再生|Play Now
+マイリストに追加|Add to My List
+マイリストの追加・編集|Edit My Lists
+リストの追加・編集|Edit Lists
+マイリストの選択|Select My List
+エクスポートするマイリスト|List to Export
+マイリストへインポートするファイルの選択|Import My List
+履歴へインポートするファイルの選択|Import History
+マイリストをエクスポートするファイル名の選択|Export My List
+履歴をエクスポートするファイル名の選択|Export History
+削除|Delete
+全て削除|Delete All
+上に移動|Move Up
+下に移動|Move Down
+先頭に移動|Move to Top
+最後尾に移動|Move to Bottom
+名前を付けて保存|Save As
+すべてのファイル (*.*)|All Files (*.*)
+インターネット アドレスを入力してください。|Enter an Internet address.
+RSS Feed のアドレスを入力してください。|Enter the RSS feed address.
+RSS 追加ダイアログ|Add RSS Feed
+←戻る|Back
+再生|Play
+停止|Stop
+一時停止|Pause
+再生/一時停止|Play/Pause
+前の曲|Previous Track
+前の曲/頭出し|Previous Track / Restart
+次の曲|Next Track
+早戻し|Rewind
+早送り|Fast Forward
+再生位置|Playback Position
+音量|Volume
+音量 大きく|Volume Up
+音量 小さく|Volume Down
+テンポ 速く|Tempo Up
+テンポ 遅く|Tempo Down
+テンポ 戻す|Reset Tempo
+テンポを上げます|Increase tempo
+テンポを下げます|Decrease tempo
+テンポを元に戻します|Reset tempo
+キーを上げます|Raise key
+キーを下げます|Lower key
+キーを元に戻します|Reset key
+オリジナルキーに戻します|Restore original key
+メロディー音を消します|Mute guide melody
+メロディー音量を大きくします|Increase melody volume
+メロディー音量を小さくします|Decrease melody volume
+メロディー音量を通常にします|Reset melody volume
+エコーレベルを上げます|Increase echo
+エコーレベルを下げます|Decrease echo
+マイク入力ボリュームを上げます|Increase microphone volume
+マイク入力ボリュームを下げます|Decrease microphone volume
+マイリストに追加します|Add to My List
+カラオケ採点オン/オフ|Karaoke Scoring On/Off
+スクリーン オン/オフ|Screen On/Off
+スクリーン メニュー|Screen Menu
+スクリーン表示|Show Screen
+スクリーン選択|Select Screen
+スクリーンを隠します|Hide screen
+サイドパネル表示|Show Side Panel
+パネルを開きます|Open panel
+パネルを閉じます|Close panel
+パネルを隠します|Hide panel
+レベルメーター|Level Meter
+リピート設定|Repeat Mode
+小さいスキン|Small Skin
+普通のスキン|Normal Skin
+最小化|Minimize
+最大化|Maximize
+元に戻す (縮小)|Restore
+終了|Exit
+メドレー|Medley
+はい|Yes
+いいえ|No
+今後このダイアログを表示しない。|Do not show this dialog again.
+次からはこのメッセージを表示しない。|Do not show this message again.
+ボタンを選択してください。|Select a button.
+バッファリング...|Buffering...
+接続中...|Connecting...
+再生開始まであと %d 秒|Playback starts in %d seconds
+再生に必要なアドインが見つかりません。|A required playback add-in was not found.
+再生に必要なコンポーネントをダウンロード中です。|Downloading playback components.
+再生に必要なコンポーネントをダウンロード中です(%dバイト)。|Downloading playback components (%d bytes).
+ネットワークエラーが発生しました。\n（エラーコード : %d）|A network error occurred.\n(Error code: %d)
+MRMLファイルにエラーがあります\n( line : %d )|The MRML file contains an error.\n(Line: %d)
+ファイルの読み込みに失敗しました。|Failed to read the file.
+曲の再生に失敗しました。|Failed to play the track.
+MIDIデバイスがオープンできません。|Cannot open the MIDI device.
+オーディオデバイスがオープンできません。|Cannot open the audio device.
+オーディオ入力デバイスのオープンに失敗しました。|Failed to open the audio input device.
+オーディオ出力デバイスのオープンに失敗しました。|Failed to open the audio output device.
+エコー処理モジュールが見つかりません。|The echo processing module was not found.
+エフェクタの初期化に失敗しました。\nモニタにはエフェクトが反映されません。|Failed to initialize effects.\nMonitor audio will have no effects.
+このバージョンのOSではマイクを使用できません。\nマイクはWin XP, Win2000でのみ使用可能です。|Microphone input is unavailable on this OS.\nOnly Windows XP and Windows 2000 are supported.
+マイクを使用中のときはマイクレベル設定を行う事はできません。|Microphone level cannot be configured while the microphone is in use.
+採点を行うにはマイクレベル設定を行う必要があります。|Configure the microphone level before scoring.
+採点機能はパソカラホーダイ会員の方のみが利用できます。|Scoring is available only to Pasokara Hodai members.
+これ以上マイリストを作成することは出来ません。|No more lists can be created.
+これ以上曲を予約することは出来ません。|No more tracks can be queued.
+マイリストへこれ以上曲を追加することは出来ません。|No more tracks can be added to this list.
+履歴へこれ以上曲を追加することが出来ません。|No more tracks can be added to history.
+マイリストの追加に失敗しました。|Failed to create the list.
+マイリストへの追加に失敗しました。|Failed to add to the list.
+曲の予約に失敗しました。|Failed to queue the track.
+選択されたすべての曲を予約することは出来ませんでした。|Some selected tracks could not be queued.
+選択されたすべての曲を登録することは出来ませんでした。|Some selected tracks could not be registered.
+マイリストへ選択されたすべての曲を追加することは出来ませんでした。|Some selected tracks could not be added to the list.
+現在、履歴に曲は登録されていません。|History is empty.
+現在、マイリストに曲は登録されていません。\n左のタブを押して次に歌う曲を探してください。|This list is empty.\nUse the tabs on the left to find a song.
+現在、再生中または予約中の曲はありません。\n左のタブを押して次に歌う曲を探してください。|No tracks are playing or queued.\nUse the tabs on the left to find a song.
+リストの名前を変更するには、リストを選択し、[リスト名の変更]ボタンを押し、好きな名前を入れてください。|Select a list, click Rename List, and enter a new name.
+リストまたは曲を削除するには、削除したいリストまたは曲を選択して[削除]ボタンを押してください。|Select the list or track to remove, then click Delete.
+リストを削除するには、削除したいリストを選択して[削除]ボタンを押してください。|Select a list, then click Delete.
+新しいリストを作成するには、[新しいリストの作成]ボタンを押してください。|Click Create List to add a new list.
+スキンをインストールしました。|The skin was installed.
+背景画像をインストールしました。|The background images were installed.
+スキンファイルの読み込みに失敗しました。|Failed to read the skin file.
+キャッシュにファイルが見つかりません。\n(オフラインモードです)|The file was not found in the cache.\n(Offline mode)
+プログラムの更新はありません。|The program is up to date.
+更新情報はありません。|No update information is available.
+更新情報の取得に失敗しました。|Failed to retrieve update information.
+自動アップデートに失敗しました。|Automatic update failed.
+ダウンロードに失敗しました。アップデートを中止します。|Download failed. Update cancelled.
+プレーヤの更新情報を取得しています...|Checking for player updates...
+プレーヤが更新されています。\nインストーラをダウンロードしますか？|A player update is available.\nDownload the installer?
+更新されたコンポーネントがあります。\nインストールしますか？|Updated components are available.\nInstall them?
+更新されたコンポーネントがあります(%dKバイト)。\nインストールしますか？|Updated components are available (%d KB).\nInstall them?
+更新されたコンポーネントをインストール中です。|Installing updated components.
+更新されたコンポーネントをインストール中です(%dKバイト)...|Installing updated components (%d KB)...
+コンポーネントのインストールに失敗しました。\n全てのWebブラウザを終了し、MidRadioプレーヤを一度終了した後に\n再び自動アップデートを行ってください。|Component installation failed.\nClose all web browsers and MidRadio Player,\nthen try automatic update again.
+最新のDirectXをインストールしてください。|Install the latest DirectX.
+最新版の Windows Media Player をインストールしてください。|Install the latest Windows Media Player.
+曲情報ビットマップの作成に失敗しました。(W:%d * H:%d)|Failed to create song info bitmap. (W:%d * H:%d)
+タイトルビットマップの作成に失敗しました。(W:%d * H:%d)|Failed to create title bitmap. (W:%d * H:%d)
+背景ビットマップの作成に失敗しました。(W:%d * H:%d)|Failed to create background bitmap. (W:%d * H:%d)
+歌詞ビットマップの作成に失敗しました。(W:%d * H:%d)|Failed to create lyrics bitmap. (W:%d * H:%d)
+せってい|Settings
+karaoke カラー|Karaoke Colors
+ﾀﾞｲｱﾛｸﾞ|Dialog
+%1\nこのファイルが見つかりません。\nパスとファイル名が正しいかどうか確認してださい。|%1\nFile not found.\nCheck the path and file name.
+%1 から %2 までの数字を入力してください。|Enter a number between %1 and %2.
+%1 から %2 までの整数を入力してください。|Enter an integer between %1 and %2.
+%1 が見つかりませんでした。|%1 was not found.
+%1 には無効なパスが含まれています。|%1 contains an invalid path.
+%1 のシークに失敗しました。|Failed to seek in %1.
+%1 の形式が正しくありません。|%1 has an invalid format.
+%1 の書き込み中に予期しないエラーが発生しました。|An unexpected error occurred while writing %1.
+%1 の末尾以降にアクセスしようとしました。|Attempted to access beyond the end of %1.
+%1 の読み取り中に予期しないエラーが発生しました。|An unexpected error occurred while reading %1.
+%1 の読み取り中に書き込もうとしました。|Attempted to write to %1 while reading it.
+%1 は不正なスキーマを含んでいます。|%1 contains an invalid schema.
+%1 は予期しないオブジェクトを含んでいます。|%1 contains an unexpected object.
+%1 は使用中のため、読み取れません。|Cannot read %1 because it is in use.
+%1 は使用中または読み取り専用のため、書き込めません。|Cannot write %1 because it is in use or read-only.
+%1 へのアクセスは拒否されました。|Access to %1 was denied.
+%1 へのアクセス中にディスクがいっぱいになりました。|The disk became full while accessing %1.
+%1 へのアクセス中にハードウェア I/O エラーが報告されました。|A hardware I/O error occurred while accessing %1.
+%1 へのアクセス中にロック違反が発生しました。|A locking violation occurred while accessing %1.
+%1 へのアクセス中に不明なエラーが発生しました。|An unknown error occurred while accessing %1.
+%1 へのアクセス中に共有違反が発生しました。|A sharing violation occurred while accessing %1.
+%1 への変更を保存しますか?|Save changes to %1?
+%1 へ書き込み中に読み取ろうとしました。|Attempted to read %1 while writing it.
+%1 へ無効なファイル ハンドルが関連付けられていました。|An invalid file handle was associated with %1.
+%1 を作成できませんでした。そのディレクトリはいっぱいです。|Cannot create %1. The directory is full.
+%1 文字以内で入力してください。|Enter no more than %1 characters.
+%1: %2\nContinueスクリプトを実行中ですか?|%1: %2\nContinue running scripts?
+(送信するデータに個人情報含まれません。この設定|(No personal information is sent. This setting
+0 から 255 までの整数を入力してください。|Enter an integer between 0 and 255.
+MidRadioは、一度聴いた曲などをパソコン本体に蓄えて\nおくことで、ネットワークに接続する時間を節約できますが、\n大量にキャッシュを作成するとハードディスクを圧迫します。\nハードディスクの空き容量が少なくなってきた場合には\n下のボタンでキャッシュをクリアすることができます。\n\n（ただし、ダウンロード後72時間以上経過したキャッシュ\nファイルは自動的に削除されます。）|MidRadio caches previously played tracks on your computer\nto reduce network connection time. A large cache can use\na significant amount of disk space.\nIf disk space is low, click the button below\nto clear the cache.\n\nCached files are automatically deleted 72 hours\nafter downloading.
+このプログラムにはファイル %s が必要ですがこのシステム上に見つかりませんでした。|This program requires file %s, which was not found on this system.
+このプログラムは欠落エクスポート %s にファイル %s 内でリンクされています。このコンピュータは互換性のないバージョンの %s を含んでいる可能性があります。|This program links to missing export %s in file %s. An incompatible version of %s may be installed.
+は[オプション]-[ネットワーク]タブから変更できます)|can be changed under Options > Network.)
+アプリケーションの内部エラーです。|An internal application error occurred.
+エラー メッセージはありません。|No error message is available.
+エラーが発生しました。|An error occurred.
+エラーはありませんでした。|No errors occurred.
+コマンドの実行に失敗しました。|Failed to execute the command.
+サポートされていない操作を実行しました。|An unsupported operation was attempted.
+システム レジストリ エントリは削除されています。また、INI ファイルがある場合は、INI ファイルも削除されました。|The system registry entries and any INI file were removed.
+ディスパッチの例外 : %1|Dispatch exception: %1
+ドキュメントの保存に失敗しました。|Failed to save the document.
+ドキュメントを開くことに失敗しました。|Failed to open the document.
+ファイルが大きすぎて開けません。|The file is too large to open.
+ファイルは完全です|The file is complete.
+プレーヤの設定情報をヤマハに送信しますか？|Send player settings information to Yamaha?
+ヘルプの起動に失敗しました。|Failed to open Help.
+メモリが不足しています。|Not enough memory.
+メモリ不足のため実行できません。|Cannot continue because there is not enough memory.
+メール システム DLL が無効です。|The mail system DLL is invalid.
+メール システム サポートを読み込めません。|Cannot load mail system support.
+メールの送信に失敗しました。|Failed to send mail.
+ヤマハのソフトウェアおよびサービスの品質向上に役立てるため、プレーヤの設定情報をヤマハに送信する。|Send player settings to Yamaha to help improve its software and services.
+ヤマハ株式会社(以下弊社)はこれらの情報をサーバ上で蓄積し、今後の製品開発の参考のために使用します。弊社が弊社以外の第三者にこれらの情報を開示することはありません。|Yamaha Corporation stores this information on its servers for future product development. Yamaha will not disclose it to third parties.
+一部のシステム レジストリ エントリ (または INI ファイル) は削除されませんでした。|Some registry entries or INI files could not be removed.
+不明なエラーが発生しました。|An unknown error occurred.
+予期しないファイル形式です。|Unexpected file format.
+出力先のディスク ドライブの空き容量が不足しています。|Not enough free space on the destination drive.
+印刷ジョブを開始できませんでした。|Cannot start the print job.
+収集される情報|Information Collected
+品質改善への協力\n\nヤマハのソフトウェアおよびサービスの品質向上に役立てるため、|Help Improve Quality\n\nTo help improve Yamaha software and services,
+必要なリソースを利用できませんでした。|A required resource is unavailable.
+数字を入力してください。|Enter a number.
+整数を入力してください。|Enter an integer.
+日付/時刻を入力してください。|Enter a date and time.
+日付を入力してください。|Enter a date.
+時刻を入力してください。|Enter a time.
+書き込み専用プロパティからは読み取れません。|Cannot read a write-only property.
+本ソフトウェアに関する情報の収集と用途|Software Information Collection and Use
+本ソフトウェアやサービスの使用状況が匿名の情報として収集されます。\n収集される情報は、MIDIの主力先・デバイス名、カラオケ採点・マイク・\nエコー、キー、テンポなどの本ソフトウェアの設定情報です。\n名前、住所、その他の個人を特定できる情報は一切収集されません。|Anonymous software and service usage information is collected.\nThis includes MIDI output and device names, karaoke scoring,\nmicrophone, echo, key, tempo, and other player settings.\nNames, addresses, and other identifying information are not collected.
+正の整数を入力してください。|Enter a positive integer.
+無効なファイル名です。|Invalid file name.
+無効な引数が発生しました。|An invalid argument was supplied.
+無題|Untitled
+無題のファイル|Untitled file
+現在のディレクトリ %1 は削除できませんでした。|Cannot remove the current directory %1.
+用途|Use
+空のドキュメントの作成に失敗しました。|Failed to create an empty document.
+読み取り専用プロパティには書き込めません。|Cannot write to a read-only property.
+通貨型を入力してください。|Enter a currency value.
+開いているファイルが多すぎるため、%1 を開けませんでした。|Cannot open %1 because too many files are open.
+（体験版）|(Trial)
+（体験版 --- 有効期限切れ）|(Trial - Expired)
+（評価版）|(Evaluation)
+（評価版 --- 有効期限切れ）|(Evaluation - Expired)
