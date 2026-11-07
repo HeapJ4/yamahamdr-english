@@ -22,7 +22,7 @@ jobs:
           COMMON="-finput-charset=UTF-8 -fexec-charset=UTF-8 -D_WIN32_WINNT=0x0601 -std=c++17 -O2 -static -static-libgcc -static-libstdc++"
           $CXX $COMMON -shared -o native-bin/PlayerCore.dll native/core_proxy.cpp native/directory_ui.cpp native/skin_english.cpp native/media_prepare.cpp native/core_proxy.def -lcomctl32 -lwininet -lshlwapi -lgdi32 -luser32 -lshell32
           $CXX $COMMON -municode -o native-bin/MidRadioDecode.exe native/codec_decoder.cpp -lmfplat -lmfreadwrite -lmfuuid -lole32
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: native-components
           path: native-bin/*
@@ -54,7 +54,7 @@ jobs:
       - name: Package source
         run: python pack.py
       - name: Upload source package and checksums
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: source-package-${{ matrix.os }}
           path: dist/*
