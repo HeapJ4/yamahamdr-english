@@ -1,0 +1,77 @@
+{
+  "translated_fields": 756,
+  "files": [
+    {
+      "file": "Addins/ChordDisp.dll",
+      "fields": 54,
+      "resources": 7,
+      "source_sha256": "7363d1b38f237adca716cff5a8a28fe8394297948e47ed7aa3b0bcbc027a1cc8",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "Addins/LyricDisp.dll",
+      "fields": 49,
+      "resources": 7,
+      "source_sha256": "c28579b2b8afa3385c37366d74d28bb628dfc41d13eaf1f9bcfe30c0d8e25992",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "Addins/MidiFmt.dll",
+      "fields": 3,
+      "resources": 1,
+      "source_sha256": "99605435069c68781036ec5c2f461f2332d8bc0f27f8e8d821eb7daa621e51e9",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "Addins/MidiOut.dll",
+      "fields": 2,
+      "resources": 1,
+      "source_sha256": "36ec2eea6abd57fc25287c90c754af10407cec667c32539101faf72a4ffcd735",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "Addins/SGP2.DLL",
+      "fields": 16,
+      "resources": 4,
+      "source_sha256": "280823c8f2164364afe19ef1b17f7669f53c4084fd1c6588efd33f7e5db19268",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "Addins/Slideshow.dll",
+      "fields": 12,
+      "resources": 1,
+      "source_sha256": "d8aecfb4ad2f74b6a8aca8de285350b646e7ed8c9ccda9b7d5fcedcd8d62b128",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "M5_EmuHw.dll",
+      "fields": 85,
+      "resources": 14,
+      "source_sha256": "f2702720d01730b3555d042cd22edd5ff58066b59da8f11241236170f26c4732",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "M5_EmuSmw5.dll",
+      "fields": 85,
+      "resources": 14,
+      "source_sha256": "9bd7a8e24f9fb6430b66e3a11d9f55b98549caf0ffeb42a005da851b316eac7b",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "MidRadio.exe",
+      "fields": 419,
+      "resources": 39,
+      "source_sha256": "839a465ae05f0cb3599df1771660b1de95faabe964a709bdd7af3df100c47c53",
+      "non_resource_sections_unchanged": true
+    },
+    {
+      "file": "MidRadio.ocx",
+      "fields": 31,
+      "resources": 4,
+      "source_sha256": "cf0e7c3b58134be47f2cc42b054f80d9dd99a8e61eb8d5fdda7444e58de9f2a3",
+      "non_resource_sections_unchanged": true
+    }
+  ],
+  "version": "0.1.0-preview",
+  "player_version": "7.2.1.1"
+}
