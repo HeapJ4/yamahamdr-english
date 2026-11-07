@@ -10,7 +10,8 @@ VERSION = '0.1.0-preview'
 SOURCE_FILES = [
     'README.md', 'LICENSE', 'NOTICE.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
     'patch.py', 'pe_resources.py', 'translations.txt', 'supported-build.json',
-    'pack.py', '.gitignore', '.github/workflows/check.yml',
+    'pack.py', '.gitignore', 'SECURITY.md', '.github/CODEOWNERS',
+    '.github/dependabot.yml', '.github/workflows/check.yml',
     'docs/findings.md', 'docs/release-v0.1.0-preview.md', 'tests/test_patch.py',
 ]
 PORTABLE_README = '''MidRadio English v0.1.0-preview
