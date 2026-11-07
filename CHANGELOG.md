@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+- Combine English resources with the embedded native directory seeker.
+- Translate screen/details/repeat skin lettering and shift Track Details right.
+- Fix UTF-8 separators.
+- Add isolated OGG Vorbis and Windows Media Foundation M4A decoding.
+- Preserve native Yamaha formats and test HTTP media preparation.
+- Ship the correct directory launcher, bilingual instructions, checksums, and source.
+
+
 ## 0.1.0-preview
 
 - Translate 756 Win32 text fields across 10 MidRadio Player 7.2.1.1 binaries.

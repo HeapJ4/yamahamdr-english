@@ -1,111 +1,148 @@
-# MidRadio English
+[English](#english) · [Русский](#russian)
 
-**Yamaha MidRadio Player, with an English interface.**
+# MidRadio English + Directory
 
 [![Tests](https://github.com/HeapJ4/yamahamdr-english/actions/workflows/check.yml/badge.svg)](https://github.com/HeapJ4/yamahamdr-english/actions/workflows/check.yml)
-[![License: MIT](https://img.shields.io/badge/patch_code-MIT-blue.svg)](LICENSE)
-![Target: Windows 10 x64](https://img.shields.io/badge/target-Windows_10_x64-0078D6)
-![Status: Preview](https://img.shields.io/badge/status-preview-orange)
+![Windows 10 x64](https://img.shields.io/badge/Windows-10_x64-0078D6)
+[![MIT patch code](https://img.shields.io/badge/patch_code-MIT-blue.svg)](LICENSE)
 
-An unofficial English localization of **MidRadio Player 7.2.1.1**. This preview translates **756 text fields across 10 files**, including menus, settings, dialogs, tooltips, and error messages.
+<a name="english"></a>
 
-## Get the portable version
+## English
 
-Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v0.1.0-preview-windows-x64.zip`** when available.
+**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **0.2.0** combines the features in one portable folder.
 
-1. Close any running copy of MidRadio Player.
-2. Right-click the ZIP and choose **Extract All**. Keep every file and the `Addins` folder together.
-3. Open the extracted folder and launch **`MidRadio-English.exe`**.
-4. Use **File → Open File** to open a local music file.
+### Download and run
 
-No Python, installer, administrator access, or replacement of the installed player is needed to launch the portable package. The original application may still store its settings in the Windows registry: “portable” here means an extracted application folder, not guaranteed zero traces.
+1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v0.2.0-windows-x64.zip`**.
+2. Close other copies of MidRadio, right-click the ZIP, and choose **Extract All**.
+3. Keep all files and `Addins` together. Run **`MidRadio-Directory.exe`**.
 
-**Primary target:** Windows 10 x64. **User-confirmed working:** Windows 11 x64. The original player remains an **x86 application** and runs on x64 Windows through WoW64; this project does not convert its audio engine to native x64. A clean Windows 10 installation has not yet been independently tested.
+No Python, installer, or administrator rights are needed to launch the package. Target: **Windows 10 x64**; the user also confirms the directory build on **Windows 11 x64**. The original player is x86, running through WoW64. A clean Windows 10 machine has not been independently tested. The player may retain preferences in the Windows registry.
 
-## What is translated?
+### Directory seeker
 
-| Component | Translated text fields |
-| --- | ---: |
-| Main player | 419 |
-| Synthesizer modules | 170 |
-| Chord/songbook add-in | 54 |
-| Karaoke add-in | 49 |
-| ActiveX control | 31 |
-| SGP2 synthesizer setup | 16 |
-| Slideshow | 12 |
-| MIDI format and output add-ins | 5 |
-| **Total** | **756** |
+The directory pane is embedded below the original skinned player. It starts at the Samsung SGH-D500 ringtone directory.
 
-The patch changes Win32 text resources. It preserves resource identifiers, dialog control structure, format placeholders, keyboard-shortcut suffixes, font names, and non-resource PE section bytes.
+- Paste an Apache/nginx HTTP(S) directory URL and press **Open folder**.
+- Double-click folders to navigate; use **Up** to go to the parent.
+- Filter names, then use **Play selected** for one track or **Play all** for the visible list.
+- Right-click a row and choose **Copy full URL** to copy its link.
 
-### Preview limitations
+### Audio and native Yamaha files
 
-- Some Japanese text is drawn into skin bitmaps, including **Select Screen**, **Track Details**, and the **repeat-mode labels**. Those graphics remain Japanese in this release.
-- Music titles, lyrics, third-party skins, and online content are not translated.
-- UI startup, translated menus, and the MIDI settings dialog were observed on the development machine. Audio playback and every dialog have not been systematically tested.
-- The project does not repair the player's legacy online services or establish that they still work.
-- The portable build was tried on a machine with MidRadio already installed. First-run dependency behavior on a clean PC still needs testing.
+| Files opened through the directory seeker | Handling |
+| --- | --- |
+| WAV, MP3 | Yamaha's original playback engine |
+| MMF/SMAF, MRM, MRL, MID/MIDI | Existing Yamaha format add-ins |
+| OGG **Vorbis**, mono/stereo | Separate bounded decoder → 16-bit PCM WAV → Yamaha |
+| M4A with a Windows-supported codec, including AAC | Windows Media Foundation → PCM WAV → Yamaha |
 
-## Build it yourself
+OGG here means Vorbis, not Opus-in-Ogg. Extra OGG/M4A handling applies to files opened through the **directory seeker**, rather than adding entries to Yamaha's original file-open codec list. Encrypted or unsupported M4A codecs are not supported.
 
-Use **Windows** and **Python 3.9 or newer**, plus an original MidRadio Player 7.2.1.1 installation. No pip dependencies are required.
+Tracks and decoded PCM are cached in `%TEMP%\MidRadio-Directory-cache`. Close the player before removing that cache. A compressed download is limited to 256 MiB and decoded PCM to 512 MiB. Decoding runs in a separate process with a timeout; the experimental Yamaha Ogg plug-in is excluded. MRL files retain the original player's playlist behavior, including its handling of relative references.
 
-From the extracted source folder:
+### English interface
+
+The text patch translates **756 fields across 10 files**. Runtime skin rendering replaces **Select Screen**, **Track Details**, and repeat-mode lettering while retaining the artwork and click areas. Track Details has been shifted slightly right. The directory pane uses UTF-8 source text, fixing the stray `Â` separator.
+
+Titles, lyrics, external skins, and online content are not translated. This project does not restore obsolete Yamaha online services.
+
+### Build from source
+
+Use Windows, Python 3.9+, an **x86 MinGW C++ compiler**, and an original MidRadio Player 7.2.1.1 installation:
+
+```powershell
+py -3 build_directory.py --compiler "C:\path\to\i686-w64-mingw32-g++.exe" --output .\MidRadio-Directory
+py -3 pack.py --portable .\MidRadio-Directory
+```
+
+The builder checks original hashes, builds a separate folder, preserves the Yamaha core as `CoreOriginal.dll`, compiles the directory/skin extension and `MidRadioDecode.exe`, and records every shipped binary's SHA-256 in `directory-build.json`. It does not overwrite the installed player. `pack.py` creates source and portable ZIPs plus checksum sidecars in `dist/`.
+
+For the text patch alone:
 
 ```powershell
 py -3 patch.py --dry-run
 py -3 patch.py --output .\MidRadio-English
 ```
 
-For a different installation location:
-
-```powershell
-py -3 patch.py --source "D:\Apps\MidRadio Player" --output "D:\Apps\MidRadio-English"
-```
-
-The patcher checks the source SHA-256 hashes in [`supported-build.json`](supported-build.json) before writing anything. It copies the player to a new directory, applies translations there, verifies the changed resources and unchanged code/data sections, and creates `MidRadio-English.exe` as the explicit launch target. It refuses existing output folders and never edits the original installation.
-
-Close the Japanese player before launching the English copy. During development, launching an executable with the original name opened the installed copy; using the explicitly named English executable avoided that.
-
-### Package a build
-
-```powershell
-py -3 pack.py
-py -3 pack.py --portable .\MidRadio-English
-```
-
-The first command creates a source ZIP. The second also creates the Windows portable ZIP. Both write SHA-256 checksum sidecars to `dist/`. The portable packager verifies its input report and includes only player binaries, sound tables, documentation, and a build report.
-
-### Development checks
+### Tests and contributions
 
 ```powershell
 py -3 -m unittest discover -s tests -v
 ```
 
-The synthetic tests run on Windows and Linux without Yamaha binaries. Tests cover string tables, standard and extended dialog alignment, menus, placeholders, font preservation, and source-build rejection. An optional local build check is:
+CI cross-compiles the native x86 components and tests the Python resources on Windows/Linux. Windows CI exercises the separate Vorbis decoder. Local checks also cover M4A/MP3/WAV decoding, HTTP media preparation, native-format byte preservation, malformed OGG rejection, directory parsing, and skin icon preservation. The fixtures are synthetic tones. Optional decoder tests use `MIDRADIO_DECODER`; set `MIDRADIO_TEST_MEDIA_FOUNDATION=1` for local M4A tests.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [the resource findings](docs/findings.md). `main` requires PRs, resolved discussions, and passing Windows/Linux checks. Main and version tags are protected; external workflow runs need maintainer approval.
+
+Patch code: [MIT](LICENSE). Yamaha components retain their original ownership and terms: [NOTICE.md](NOTICE.md). The separate decoder includes stb_vorbis under its retained MIT license: [third-party notices](THIRD_PARTY_NOTICES.md). This is an independent project, unaffiliated with Yamaha.
+
+---
+
+<a name="russian"></a>
+
+## Русский
+
+**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **0.2.0** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
+
+### Загрузка и запуск
+
+1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v0.2.0-windows-x64.zip`**.
+2. Закройте другие копии MidRadio. Нажмите на ZIP правой кнопкой мыши и выберите **«Извлечь всё»**.
+3. Не разделяйте файлы и папку `Addins`. Запустите **`MidRadio-Directory.exe`**.
+
+Python, установщик и права администратора для запуска не нужны. Основная система — **Windows 10 x64**; пользователь также подтвердил работу сборки с браузером каталогов в **Windows 11 x64**. Исходный плеер остаётся 32-разрядным и работает через WoW64. Чистая установка Windows 10 отдельно не проверялась. Настройки плеера могут сохраняться в реестре Windows.
+
+### Браузер каталогов
+
+Панель встроена под оригинальным плеером. По умолчанию открывается каталог мелодий Samsung SGH-D500.
+
+- Вставьте адрес HTTP(S)-каталога Apache/nginx и нажмите **Open folder**.
+- Двойной щелчок открывает папку; **Up** возвращает в родительский каталог.
+- Используйте фильтр, **Play selected** для выбранного файла или **Play all** для видимого списка.
+- Правая кнопка мыши → **Copy full URL** копирует ссылку.
+
+### Форматы
+
+| Файлы, открываемые через браузер каталогов | Обработка |
+| --- | --- |
+| WAV, MP3 | Исходный звуковой движок Yamaha |
+| MMF/SMAF, MRM, MRL, MID/MIDI | Штатные дополнения Yamaha |
+| OGG **Vorbis**, моно/стерео | Отдельный декодер → PCM WAV → Yamaha |
+| M4A с поддерживаемым Windows кодеком, включая AAC | Windows Media Foundation → PCM WAV → Yamaha |
+
+Под OGG понимается Vorbis, а не Opus в контейнере Ogg. Дополнительная обработка OGG/M4A действует через **браузер каталогов**, а не через исходный список кодеков окна открытия файлов Yamaha. Зашифрованные M4A и неподдерживаемые кодеки не воспроизводятся.
+
+Загруженные файлы и декодированный PCM сохраняются в `%TEMP%\MidRadio-Directory-cache`. Удаляйте кеш после закрытия плеера. Загрузка ограничена 256 МиБ, декодированный PCM — 512 МиБ. Декодер запускается отдельным процессом с тайм-аутом. Экспериментальный Ogg-плагин Yamaha в сборку не включён. Файлы MRL обрабатываются штатным плеером, включая его правила относительных ссылок.
+
+### Перевод и графика
+
+Переведены **756 полей в 10 файлах**. Графические надписи **Select Screen**, **Track Details** и режимы повтора заменяются во время отрисовки; исходные изображения и области нажатия сохраняются. Track Details немного сдвинута вправо. Ошибка кодировки с лишним символом `Â` исправлена.
+
+Названия композиций, тексты песен, сторонние скины и онлайн-контент не переводятся. Устаревшие онлайн-сервисы Yamaha не восстанавливаются.
+
+### Самостоятельная сборка
+
+Нужны Windows, Python 3.9+, **32-разрядный компилятор MinGW C++** и исходная установка MidRadio Player 7.2.1.1:
 
 ```powershell
-py -3 patch.py --dry-run --source "C:\Program Files (x86)\YAMAHA\MidRadio Player"
+py -3 build_directory.py --compiler "C:\path\to\i686-w64-mingw32-g++.exe" --output .\MidRadio-Directory
+py -3 pack.py --portable .\MidRadio-Directory
 ```
 
-## Repository layout
+Сборщик проверяет хеши исходных файлов, создаёт отдельную папку, сохраняет исходное ядро как `CoreOriginal.dll`, компилирует расширение и `MidRadioDecode.exe` и записывает SHA-256 файлов в `directory-build.json`. Установленный плеер не изменяется. ZIP-архивы и контрольные суммы появляются в `dist/`.
 
-```text
-patch.py              Validated Windows resource patcher
-pe_resources.py       PE32 resource and dialog/menu/string parsers
-translations.txt      Japanese|English translations (UTF-8)
-supported-build.json  Supported original hashes and translation counts
-pack.py               Source/portable ZIP packaging and checksums
-tests/                Synthetic regression tests
-docs/                 Release notes and reverse-engineering findings
+Проверки:
+
+```powershell
+py -3 -m unittest discover -s tests -v
 ```
 
-## Contributing
+CI собирает нативные компоненты x86 и проверяет ресурсы в Windows/Linux. В Windows проверяется декодирование Vorbis. Локально также проверены M4A/MP3/WAV, подготовка файлов по HTTP, сохранение файлов Yamaha без изменений, отклонение повреждённого OGG, разбор каталогов и сохранение графических значков. Тестовые записи — синтетические тоны. Для тестов декодера задайте `MIDRADIO_DECODER`; для дополнительных проверок Media Foundation — `MIDRADIO_TEST_MEDIA_FOUNDATION=1`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Helpful reports include untranslated labels, clipped controls, and playback or first-run results on Windows 10 x64. Include the player version and reproduction steps. Please do not upload music files, credentials, or personal settings.
+Участие: [CONTRIBUTING.md](CONTRIBUTING.md). Безопасность: [SECURITY.md](SECURITY.md). Изменения `main` проходят через PR и успешный CI; основная ветка и теги версий защищены, запуск внешних workflow требует разрешения сопровождающего.
 
-## License and attribution
+Код патчера: [MIT](LICENSE). Материалы Yamaha сохраняют исходные права: [NOTICE.md](NOTICE.md). Лицензия stb_vorbis приведена в [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Проект независим и не связан с Yamaha.
 
-The patching tools are available under the [MIT License](LICENSE). Yamaha's executables, libraries, sound data, artwork, original interface text, and trademarks retain their original ownership and terms. **The MIT license does not relicense Yamaha's software or assets.** See [NOTICE.md](NOTICE.md).
-
-This is an independent community project. It is not affiliated with, endorsed by, or supported by Yamaha.
+[↑ English](#english) · [↑ Русский](#russian)

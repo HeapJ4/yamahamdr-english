@@ -9,22 +9,52 @@ permissions:
   contents: read
 
 jobs:
+  native-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install x86 cross compiler
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-mingw-w64-i686
+      - name: Cross-compile native components
+        run: |
+          mkdir native-bin
+          CXX=i686-w64-mingw32-g++-posix
+          COMMON="-finput-charset=UTF-8 -fexec-charset=UTF-8 -D_WIN32_WINNT=0x0601 -std=c++17 -O2 -static -static-libgcc -static-libstdc++"
+          $CXX $COMMON -shared -o native-bin/PlayerCore.dll native/core_proxy.cpp native/directory_ui.cpp native/skin_english.cpp native/media_prepare.cpp native/core_proxy.def -lcomctl32 -lwininet -lshlwapi -lgdi32 -luser32 -lshell32
+          $CXX $COMMON -municode -o native-bin/MidRadioDecode.exe native/codec_decoder.cpp -lmfplat -lmfreadwrite -lmfuuid -lole32
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-components
+          path: native-bin/*
   check:
+    needs: native-build
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.9'
       - name: Test resource transformations
         run: python -m unittest discover -s tests -v
+      - name: Download native components
+        if: runner.os == 'Windows'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: native-components
+          path: native-bin
+      - name: Test OGG Vorbis decoding on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:MIDRADIO_DECODER = (Resolve-Path native-bin/MidRadioDecode.exe).Path
+          python -m unittest discover -s tests -p test_codecs.py -v
       - name: Package source
         run: python pack.py
       - name: Upload source package and checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: source-package-${{ matrix.os }}
           path: dist/*
