@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- Move Track Details another six logical pixels right, widen its text area, and remove compressed/double-rendered lettering.
+- Keep the arrow icon and sample-rate fields unobstructed.
+- Recognize percent-encoded OGG/M4A extensions during audio preparation.
+- Publish downloads atomically and regenerate incomplete decoded WAV caches.
+- Add native layout and cache-recovery regression tests to Windows CI.
+
+
 ## 0.2.0
 
 - Combine English resources with the embedded native directory seeker.

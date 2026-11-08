@@ -1,12 +1,33 @@
 #include "skin_english.cpp"
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 
 int wmain(int argc,wchar_t** argv){
- if(argc!=2)return 2;
- HMODULE resources=LoadLibraryExW(argv[1],nullptr,LOAD_LIBRARY_AS_DATAFILE);assert(resources);
+ if(argc>2)return 2;
+ HMODULE resources=argc==2?LoadLibraryExW(argv[1],nullptr,LOAD_LIBRARY_AS_DATAFILE):nullptr;
+ if(argc==2)assert(resources);
  normalFont=CreateFontW(-11,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,0,0,NONANTIALIASED_QUALITY,0,L"Tahoma");
  smallFont=CreateFontW(-9,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,0,0,NONANTIALIASED_QUALITY,0,L"Tahoma");
+ detailsFont=CreateFontW(-8,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,0,0,NONANTIALIASED_QUALITY,0,L"Arial");
+ {
+  HDC dc=CreateCompatibleDC(nullptr);BITMAPINFO info={};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+  info.bmiHeader.biWidth=DetailsWidth;info.bmiHeader.biHeight=-13;info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;
+  void* bits=nullptr;HBITMAP bitmap=CreateDIBSection(dc,&info,DIB_RGB_COLORS,&bits,nullptr,0);assert(bitmap);
+  auto previous=SelectObject(dc,bitmap);SelectObject(dc,detailsFont);SIZE text={};
+  GetTextExtentPoint32W(dc,L"Track Details",13,&text);
+  std::cerr<<"Track Details measured width: "<<text.cx<<"; available: "<<(DetailsWidth-DetailsPadding)<<"\n";
+  assert(text.cx<=DetailsWidth-DetailsPadding);
+  RECT rect={0,0,DetailsWidth,13};COLORREF background=RGB(220,230,240);
+  DetailsLabel(dc,rect,background);
+  int first=DetailsWidth,last=-1;
+  for(int y=0;y<13;++y)for(int x=0;x<DetailsWidth;++x)if(GetPixel(dc,x,y)!=background){first=std::min(first,x);last=std::max(last,x);}
+  assert(first>=DetailsPadding&&last<DetailsWidth-1&&last>first);
+  // Original text starts at player.right-296; this must stop before rate x565.
+  assert(800-296+DetailsWidth<=565);
+  SelectObject(dc,previous);DeleteObject(bitmap);DeleteDC(dc);
+ }
+ if(!resources){std::cout<<"Uncompressed Track Details placement and bounds passed.\n";return 0;}
  for(auto& s:sprites){
   s.bitmap=LoadBitmapW(resources,MAKEINTRESOURCEW(s.id));
   assert(s.bitmap);s.dc=CreateCompatibleDC(nullptr);s.old=SelectObject(s.dc,s.bitmap);
