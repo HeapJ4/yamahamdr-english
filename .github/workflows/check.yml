@@ -22,6 +22,8 @@ jobs:
           COMMON="-finput-charset=UTF-8 -fexec-charset=UTF-8 -D_WIN32_WINNT=0x0601 -std=c++17 -O2 -static -static-libgcc -static-libstdc++"
           $CXX $COMMON -shared -o native-bin/PlayerCore.dll native/core_proxy.cpp native/directory_ui.cpp native/skin_english.cpp native/media_prepare.cpp native/core_proxy.def -lcomctl32 -lwininet -lshlwapi -lgdi32 -luser32 -lshell32
           $CXX $COMMON -municode -o native-bin/MidRadioDecode.exe native/codec_decoder.cpp -lmfplat -lmfreadwrite -lmfuuid -lole32
+          $CXX $COMMON -municode -o native-bin/skin-tests.exe native/skin_english_tests.cpp -lgdi32 -luser32
+          $CXX $COMMON -municode -o native-bin/media-tests.exe native/media_prepare_tests.cpp native/media_prepare.cpp -lwininet -lshlwapi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: native-components
@@ -45,12 +47,15 @@ jobs:
         with:
           name: native-components
           path: native-bin
-      - name: Test OGG Vorbis decoding on Windows
+      - name: Test codecs, cache recovery, and label layout on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $env:MIDRADIO_DECODER = (Resolve-Path native-bin/MidRadioDecode.exe).Path
-          python -m unittest discover -s tests -p test_codecs.py -v
+          $env:MIDRADIO_MEDIA_TEST = (Resolve-Path native-bin/media-tests.exe).Path
+          python -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & native-bin/skin-tests.exe
       - name: Package source
         run: python pack.py
       - name: Upload source package and checksums

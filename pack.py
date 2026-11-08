@@ -16,7 +16,7 @@ SOURCE_FILES = [
 SOURCE_FILES += sorted(path.relative_to(ROOT).as_posix() for directory in ('native', 'tests', 'docs')
                        for path in (ROOT / directory).rglob('*')
                        if path.is_file() and path.suffix.lower() in ('.py', '.cpp', '.h', '.c', '.def', '.md', '.ogg', '.m4a', '.mp3', '.wav'))
-PORTABLE_README = """MidRadio English + Directory 0.2.0
+PORTABLE_README = """MidRadio English + Directory 0.2.1
 
 Windows 10 x64 target; also used on Windows 11 x64.
 Extract everything and run MidRadio-Directory.exe. No Python or installer needed.
@@ -92,7 +92,7 @@ def package(destination, portable=None):
     files.append(('directory-build.json', portable / 'directory-build.json'))
     for name in ('NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE'):
         files.append((name, ROOT / name))
-    files.append(('RELEASE-NOTES.md', ROOT / 'docs/release-v0.2.0.md'))
+    files.append(('RELEASE-NOTES.md', ROOT / 'docs' / ('release-v' + VERSION + '.md')))
     archive(destination / (prefix + '-windows-x64.zip'), 'MidRadio-English-Directory', files, {'README.txt': PORTABLE_README})
 
 

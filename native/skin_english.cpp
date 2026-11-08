@@ -9,7 +9,9 @@ Blit originalBlit=nullptr;
 LONG started=0;
 LONG blitCount=0,renderCount=0;
 CRITICAL_SECTION renderLock;
-HFONT normalFont=nullptr,smallFont=nullptr;
+HFONT normalFont=nullptr,smallFont=nullptr,detailsFont=nullptr;
+constexpr int DetailsWidth=61;
+constexpr int DetailsPadding=9; // Six pixels farther right than 0.2.0's 3px inset.
 struct Sprite {int id,width,height;HBITMAP bitmap;HDC dc;HGDIOBJ old;};
 Sprite sprites[]={{430,112,20,nullptr,nullptr,nullptr},
                   {359,60,52,nullptr,nullptr,nullptr},
@@ -34,6 +36,15 @@ void Label(HDC dc,RECT rect,const wchar_t* text,COLORREF foreground,COLORREF bac
  if(length>1&&extent.cx>rect.right-rect.left)SetTextCharacterExtra(dc,-((extent.cx-(rect.right-rect.left)+length-2)/(length-1)));
  DrawTextW(dc,text,-1,&rect,DT_SINGLELINE|DT_CENTER|DT_VCENTER|DT_NOPREFIX);
 }
+void DetailsLabel(HDC dc,RECT rect,COLORREF background){
+ int saved=SaveDC(dc);
+ HBRUSH brush=CreateSolidBrush(background);FillRect(dc,&rect,brush);DeleteObject(brush);
+ rect.left+=DetailsPadding;
+ SelectObject(dc,detailsFont);SetTextColor(dc,RGB(2,107,174));SetBkMode(dc,TRANSPARENT);
+ SetTextAlign(dc,TA_LEFT|TA_TOP|TA_NOUPDATECP);SetTextCharacterExtra(dc,0);
+ DrawTextW(dc,L"Track Details",-1,&rect,DT_SINGLELINE|DT_LEFT|DT_VCENTER|DT_NOPREFIX);
+ RestoreDC(dc,saved);
+}
 void Render(HDC dc,const Sprite& sprite){
  InterlockedIncrement(&renderCount);runtimeLog("skin render sprite=%d",sprite.id);
  int saved=SaveDC(dc);SetMapMode(dc,MM_TEXT);SetWindowOrgEx(dc,0,0,nullptr);SetViewportOrgEx(dc,0,0,nullptr);
@@ -44,8 +55,10 @@ void Render(HDC dc,const Sprite& sprite){
   for(int state=0;state<4;++state){
    // Preserve the original circular arrow icon and its state.
    RECT area={14,state*13,60,state*13+13};
-   Label(dc,area,L"Track Details",state==3?RGB(155,155,155):RGB(2,107,174),
-         GetPixel(sprite.dc,59,state*13+6),smallFont);
+   // Clear the old sprite lettering; the wider click-through label draws it
+   // once, without compressed/duplicate glyphs or touching the arrow icon.
+   HBRUSH brush=CreateSolidBrush(GetPixel(sprite.dc,59,state*13+6));
+   FillRect(dc,&area,brush);DeleteObject(brush);
   }
  }else if(sprite.id==368){
   static const wchar_t* labels[]={L"Repeat off",L"Repeat all",L"Repeat one"};
@@ -135,7 +148,7 @@ LRESULT CALLBACK OverlayProc(HWND h,UINT message,WPARAM wp,LPARAM lp){
   RECT parent;GetClientRect(skinParent,&parent);
   int x=index==0?parent.right-128:index==1?parent.right-296:131;
   int y=index==0?45:index==1?60:79;
-  int width=index==0?112:index==1?49:47;
+  int width=index==0?112:index==1?DetailsWidth:47;
   int height=index==0?20:index==1?13:12;
   SetWindowPos(h,HWND_TOP,x,y,width,height,SWP_NOACTIVATE);
   if(index==2)ReadRepeatGroup();
@@ -145,10 +158,7 @@ LRESULT CALLBACK OverlayProc(HWND h,UINT message,WPARAM wp,LPARAM lp){
   PAINTSTRUCT ps;HDC dc=BeginPaint(h,&ps);RECT rect;GetClientRect(h,&rect);
   if(index==0)Label(dc,rect,L"Select Screen",RGB(78,78,78),GetPixel(sprites[0].dc,111,0),normalFont);
   else if(index==1){
-   COLORREF background=GetPixel(sprites[1].dc,59,6);
-   HBRUSH brush=CreateSolidBrush(background);FillRect(dc,&rect,brush);DeleteObject(brush);
-   rect.left+=3;
-   Label(dc,rect,L"Track Details",RGB(2,107,174),background,smallFont);
+   DetailsLabel(dc,rect,GetPixel(sprites[1].dc,59,6));
   }
   else {static const wchar_t* names[]={L"Repeat off",L"Repeat all",L"Repeat one"};Label(dc,rect,names[repeatGroup],RGB(98,98,98),GetPixel(sprites[2].dc,46,35),smallFont);}
   EndPaint(h,&ps);return 0;
@@ -188,7 +198,9 @@ void StartEnglishSkinLabels(HMODULE extensionModule){
                       OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,NONANTIALIASED_QUALITY,DEFAULT_PITCH,L"Tahoma");
  smallFont=CreateFontW(-9,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,
                      OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,NONANTIALIASED_QUALITY,DEFAULT_PITCH,L"Tahoma");
- bool ready=normalFont&&smallFont;
+ detailsFont=CreateFontW(-8,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,
+                     OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,NONANTIALIASED_QUALITY,DEFAULT_PITCH,L"Arial");
+ bool ready=normalFont&&smallFont&&detailsFont;
  for(auto& sprite:sprites){
   sprite.bitmap=LoadBitmapW(GetModuleHandleW(nullptr),MAKEINTRESOURCEW(sprite.id));
   sprite.dc=CreateCompatibleDC(nullptr);
