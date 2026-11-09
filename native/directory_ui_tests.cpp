@@ -19,11 +19,13 @@ void TestModeLayout(){
   SendMessageW(mainWindow,WM_APP+424,0,0);
   SetWindowPos(mainWindow,nullptr,0,0,300,160,SWP_NOZORDER|SWP_NOMOVE);
   RECT r={};GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==160&&reservedHeight==0);
-  SetWindowPos(mainWindow,nullptr,0,0,800,480,SWP_NOZORDER|SWP_NOMOVE);
-  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==820&&reservedHeight==340);
+  // Keep the fixture within the CI desktop's height. DefWindowProc may clamp
+  // oversized top-level windows to the monitor's maximum tracking dimensions.
+  SetWindowPos(mainWindow,nullptr,0,0,800,200,SWP_NOZORDER|SWP_NOMOVE);
+  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==540&&reservedHeight==340);
   // A position-only operation must never grow the window a second time.
   SetWindowPos(mainWindow,nullptr,1,1,0,0,SWP_NOSIZE|SWP_NOZORDER);
-  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==820);
+  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==540);
  }
  assert(privateMessages==100);
  DestroyWindow(mainWindow);pane=nullptr;assert(!mainWindow);
