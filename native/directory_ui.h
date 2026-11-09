@@ -11,3 +11,4 @@ bool OpenTrackPlaylist(const std::vector<std::pair<std::wstring, std::wstring>>&
 void StartDirectoryUI(HMODULE module);
 void NavigateDirectory(const std::wstring& url);
 void SetDirectoryStatus(const std::wstring& text);
+bool ExportTrackWav(const std::wstring& url, const std::wstring& title, const std::wstring& destination);

@@ -22,19 +22,24 @@ def build(source, output, compiler):
     executable = (output / 'MidRadio-English.exe').read_bytes()
     if executable.count(b'MRG3_') != 10:
         raise ValueError('Unexpected player window-class layout.')
-    (output / 'MidRadio-Directory.exe').write_bytes(executable.replace(b'MRG3_', b'MRD3_'))
+    (output / 'MidRadio-Directory.exe').write_bytes(executable.replace(b'MRG3_', b'MR10_'))
     shutil.copy2(output / 'PlayerCore.dll', output / 'CoreOriginal.dll')
     compile_native(output, compiler)
+    launcher = ROOT / 'native' / 'prebuilt' / 'MidRadio.exe'
+    launcher_info = json.loads((launcher.parent / 'launcher.json').read_text(encoding='utf-8'))
+    if patch.digest(launcher) != launcher_info['sha256']:
+        raise ValueError('The supplied C launcher failed its checksum check.')
+    shutil.copy2(launcher, output / 'MidRadio.exe')
     identity = {
         'version': patch.VERSION,
         'player_version': '7.2.1.1',
         'target': 'Windows 10 x64 (x86 player under WoW64)',
         'launcher': 'MidRadio-Directory.exe',
-        'features': ['English resources', 'embedded directory seeker', 'English skin labels', 'OGG Vorbis', 'M4A via Media Foundation'],
+        'features': ['English resources', 'embedded directory seeker', 'English skin labels', 'OGG Vorbis', 'M4A via Media Foundation', 'integrated real-time Yamaha PCM WAV export'],
         'files': {},
     }
     for path in output.rglob('*'):
-        if not path.is_file() or path.name in ('MidRadio.exe', 'MidRadio-English.exe'):
+        if not path.is_file() or path.name == 'MidRadio-English.exe':
             continue
         if path.suffix.lower() in ('.exe', '.dll', '.ocx', '.tbl'):
             identity['files'][path.relative_to(output).as_posix()] = patch.digest(path)
@@ -46,8 +51,8 @@ def compile_native(output, compiler):
     native = ROOT / 'native'
     common = [compiler, '-finput-charset=UTF-8', '-fexec-charset=UTF-8', '-D_WIN32_WINNT=0x0601', '-std=c++17', '-O2', '-static', '-static-libgcc', '-static-libstdc++']
     subprocess.run(common + ['-shared', '-o', str(output / 'PlayerCore.dll')] +
-                   [str(native / name) for name in ('core_proxy.cpp', 'directory_ui.cpp', 'skin_english.cpp', 'media_prepare.cpp', 'core_proxy.def')] +
-                   ['-lcomctl32', '-lwininet', '-lshlwapi', '-lgdi32', '-luser32', '-lshell32'], check=True)
+                   [str(native / name) for name in ('core_proxy.cpp', 'directory_ui.cpp', 'skin_english.cpp', 'media_prepare.cpp', 'wav_export.cpp', 'core_proxy.def')] +
+                   ['-lcomctl32', '-lwininet', '-lshlwapi', '-lgdi32', '-luser32', '-lshell32', '-lcomdlg32'], check=True)
     subprocess.run(common + ['-municode', '-o', str(output / 'MidRadioDecode.exe'), str(native / 'codec_decoder.cpp'),
                             '-lmfplat', '-lmfreadwrite', '-lmfuuid', '-lole32'], check=True)
 

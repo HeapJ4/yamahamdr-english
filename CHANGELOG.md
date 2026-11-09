@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0
+
+- Include the user-supplied C launcher unchanged.
+- Install the main-window subclass on its owning GUI thread, isolate initialization messages, reserve native/directory geometry separately, hide compact-mode overlays, and stop timer-driven z-order changes.
+- Preserve existing WAV destinations on failure; atomic completion, periodic recovery headers, startup timeout, and bounded audio buffers.
+- Catch background worker exceptions and timestamp diagnostics.
+- Add automated native layout/recovery regressions. Final real-mode/menu interaction remains manually unverified.
+
+### Integrated exporter
+
+- Add Export WAV and Finish export controls directly to the directory pane.
+- Capture Yamaha-rendered MMF/SMAF and GM MIDI audio as real-time PCM WAV.
+- Hook the dedicated SMAF, MIDI and Wave output modules, preserving normal playback.
+- Finalize WAV headers on Finish/reset/close and guard against mixing the previous track or another audio device.
+- Verify real MMF and GM MIDI exports and add native PCM/WAV regression tests to Windows CI.
+
+
 ## 0.2.1
 
 - Move Track Details another six logical pixels right, widen its text area, and remove compressed/double-rendered lettering.

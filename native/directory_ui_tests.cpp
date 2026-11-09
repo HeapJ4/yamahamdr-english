@@ -4,7 +4,32 @@
 #include <iostream>
 bool OpenTrackURL(const std::wstring&,const std::wstring&){return true;}
 bool OpenTrackPlaylist(const std::vector<std::pair<std::wstring,std::wstring>>&,const std::wstring&){return true;}
+bool ExportTrackWav(const std::wstring&,const std::wstring&,const std::wstring&){return true;}
+bool WaveExportActive(){return false;}
+void FinishWaveExport(){}
+int privateMessages=0;
+LRESULT CALLBACK TestParent(HWND h,UINT m,WPARAM w,LPARAM l){if(m==WM_APP+424)++privateMessages;return DefWindowProcW(h,m,w,l);}
+void TestModeLayout(){
+ WNDCLASSW cls={};cls.lpfnWndProc=TestParent;cls.hInstance=GetModuleHandleW(nullptr);cls.lpszClassName=L"MidRadioLayoutTest";
+ RegisterClassW(&cls);
+ mainWindow=CreateWindowW(cls.lpszClassName,L"",WS_OVERLAPPEDWINDOW,0,0,800,480,nullptr,nullptr,cls.hInstance,nullptr);assert(mainWindow);
+ pane=CreateWindowW(L"STATIC",L"",WS_CHILD,0,0,800,340,mainWindow,nullptr,cls.hInstance,nullptr);assert(pane);
+ assert(SetWindowSubclass(mainWindow,ParentProc,1234,0));
+ for(int i=0;i<100;++i){
+  SendMessageW(mainWindow,WM_APP+424,0,0);
+  SetWindowPos(mainWindow,nullptr,0,0,300,160,SWP_NOZORDER|SWP_NOMOVE);
+  RECT r={};GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==160&&reservedHeight==0);
+  SetWindowPos(mainWindow,nullptr,0,0,800,480,SWP_NOZORDER|SWP_NOMOVE);
+  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==820&&reservedHeight==340);
+  // A position-only operation must never grow the window a second time.
+  SetWindowPos(mainWindow,nullptr,1,1,0,0,SWP_NOSIZE|SWP_NOZORDER);
+  GetWindowRect(mainWindow,&r);assert(r.bottom-r.top==820);
+ }
+ assert(privateMessages==100);
+ DestroyWindow(mainWindow);pane=nullptr;assert(!mainWindow);
+}
 int main(){
+ TestModeLayout();
  assert(DecodeEntities(L"A &amp; B &#x1f3b5;")==L"A & B \U0001f3b5");
  assert(DecodeEntities(L"&unknown; &#garbage;")==L"&unknown; &#garbage;");
  assert(PercentDecode(L"%E6%97%A5%E6%9C%AC%20file.mmf")==L"日本 file.mmf");

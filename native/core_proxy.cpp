@@ -9,6 +9,7 @@
 #include <thread>
 #include "directory_ui.h"
 #include "media_prepare.h"
+#include "wav_export.h"
 #include "runtime_log.h"
 
 static HMODULE instance, original;
@@ -95,23 +96,28 @@ static bool launchPlaylist(const std::vector<std::pair<std::wstring,std::wstring
     return nativeOpen(L"\""+path+L"\"");
 }
 
-bool OpenTrackURL(const std::wstring& url,const std::wstring& name) {
-    return OpenTrackPlaylist({{url,name}},name);
-}
-bool OpenTrackPlaylist(const std::vector<std::pair<std::wstring,std::wstring>>& tracks,const std::wstring& title) {
+static bool QueueTracks(const std::vector<std::pair<std::wstring,std::wstring>>& tracks,const std::wstring& title,const std::wstring& exportPath);
+bool OpenTrackURL(const std::wstring& url,const std::wstring& name) {return QueueTracks({{url,name}},name,L"");}
+bool OpenTrackPlaylist(const std::vector<std::pair<std::wstring,std::wstring>>& tracks,const std::wstring& title) {return QueueTracks(tracks,title,L"");}
+bool ExportTrackWav(const std::wstring& url,const std::wstring& title,const std::wstring& output) {return QueueTracks({{url,title}},title,output);}
+static bool QueueTracks(const std::vector<std::pair<std::wstring,std::wstring>>& tracks,const std::wstring& title,const std::wstring& exportPath) {
     static std::atomic<bool> busy{false};
+    if(WaveExportActive()){SetDirectoryStatus(L"Finish the current WAV export before opening another track.");return false;}
     if(tracks.empty()||busy.exchange(true)){SetDirectoryStatus(L"A playback request is already being prepared.");return false;}
     try {
-        std::thread([tracks,title](){
+        std::thread([tracks,title,exportPath](){
             struct Done {~Done(){busy=false;}} done;
+            try {
             std::vector<std::pair<std::wstring,std::wstring>> prepared;
             for(size_t i=0;i<tracks.size();++i){
                 SetDirectoryStatus(L"Preparing "+std::to_wstring(i+1)+L"/"+std::to_wstring(tracks.size())+L": "+tracks[i].second);
                 std::wstring path,error;
                 if(!PrepareMedia(tracks[i].first,directory,path,error)){SetDirectoryStatus(error);return;}
                 if(tracks.size()==1){
+                    if(!exportPath.empty()&&!BeginWaveExport(exportPath,error)){SetDirectoryStatus(error);return;}
                     bool ok=nativeOpen(L"\""+path+L"\"");
-                    SetDirectoryStatus(ok?L"Opened "+tracks[i].second:L"Could not open the prepared audio file.");return;
+                    if(!ok&&!exportPath.empty())FinishWaveExport();
+                    SetDirectoryStatus(ok?(!exportPath.empty()?L"Rendering WAV: "+tracks[i].second+L". Click Finish export after playback.":L"Opened "+tracks[i].second):L"Could not open the prepared audio file.");return;
                 }
                 wchar_t fileURL[32768];DWORD size=32768;
                 if(FAILED(UrlCreateFromPathW(path.c_str(),fileURL,&size,0))){SetDirectoryStatus(L"Could not create a playlist file URL.");return;}
@@ -119,6 +125,7 @@ bool OpenTrackPlaylist(const std::vector<std::pair<std::wstring,std::wstring>>& 
             }
             bool ok=launchPlaylist(prepared,title);
             SetDirectoryStatus(ok?L"Opened playlist: "+std::to_wstring(prepared.size())+L" tracks":L"Could not open playlist.");
+            }catch(const std::exception& e){runtimeLog("media worker exception: %s",e.what());FinishWaveExport();SetDirectoryStatus(L"Audio preparation failed; see runtime.log.");}catch(...){FinishWaveExport();SetDirectoryStatus(L"Audio preparation failed unexpectedly.");}
         }).detach();
     }catch(...){busy=false;return false;}
     return true;
@@ -159,6 +166,7 @@ extern "C" __declspec(dllexport) int __cdecl MRACreateInstance(void** out,void* 
         factory=(Factory)GetProcAddress(original,"MRACreateInstance");
         if(!factory) {if(out)*out=0; return 8;}
         patchHTML();
+        InitializeWaveExport(directory);
     }
     int result=factory(out,context);
     runtimeLog("core factory result=%d object=%p",result,out?*out:nullptr);

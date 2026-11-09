@@ -2,7 +2,7 @@
 
 ## Supported release
 
-Only the latest preview is maintained. The project translates a legacy Yamaha application; it does not modernize or audit its original audio engine, plug-ins, or online components.
+Only the latest release is maintained. The project translates a legacy Yamaha application; it does not modernize or audit its original audio engine, plug-ins, or online components.
 
 ## Reporting a vulnerability
 
