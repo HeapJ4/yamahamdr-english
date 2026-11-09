@@ -10,22 +10,29 @@ from patch import VERSION
 SOURCE_FILES = [
     'README.md', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
     'patch.py', 'pe_resources.py', 'translations.txt', 'supported-build.json', 'build_directory.py',
-    'pack.py', '.gitignore', '.gitattributes', 'SECURITY.md', '.github/CODEOWNERS',
+    'native/prebuilt/MidRadio.exe', 'native/prebuilt/launcher.json', 'pack.py', '.gitignore', '.gitattributes', 'SECURITY.md', '.github/CODEOWNERS',
     '.github/dependabot.yml', '.github/workflows/check.yml',
 ]
 SOURCE_FILES += sorted(path.relative_to(ROOT).as_posix() for directory in ('native', 'tests', 'docs')
                        for path in (ROOT / directory).rglob('*')
-                       if path.is_file() and path.suffix.lower() in ('.py', '.cpp', '.h', '.c', '.def', '.md', '.ogg', '.m4a', '.mp3', '.wav'))
-PORTABLE_README = """MidRadio English + Directory 0.2.1
+                       if path.is_file() and path.suffix.lower() in ('.py', '.cpp', '.h', '.c', '.def', '.md', '.ogg', '.m4a', '.mp3', '.wav', '.mid'))
+PORTABLE_README = """MidRadio English + Directory 1.0
 
 Windows 10 x64 target; also used on Windows 11 x64.
-Extract everything and run MidRadio-Directory.exe. No Python or installer needed.
+Extract everything and run MidRadio.exe. No Python or installer needed.
 Keep CoreOriginal.dll, PlayerCore.dll, MidRadioDecode.exe, and Addins together.
 
 Use Open folder for an HTTP directory, double-click a folder to navigate,
 Play selected for one track, Play all for the current list, and right-click
 for Copy full URL. The default page is the Samsung SGH-D500 ringtone folder.
 English menus and graphical labels preserve the original Yamaha skin.
+
+Select an MMF/MIDI track and click Export WAV to render it in this same app.
+Use Yamaha's built-in software synthesizer, let it play, and click Finish export.
+Export is real-time, captures only this player's PCM, and is limited to 1 GiB.
+Keep the app open until Saved WAV appears. Hardware MIDI output has no PCM.
+Exports use a sibling .partial-...wav with recovery checkpoints. Existing files
+are replaced only on successful completion. Compact modes hide the directory pane.
 
 Native Yamaha files, WAV and MP3 use Yamaha's original engine.
 OGG Vorbis and Windows-supported M4A audio use the separate bounded decoder.
@@ -77,7 +84,7 @@ def package(destination, portable=None):
     report = json.loads((portable / 'directory-build.json').read_text(encoding='utf-8'))
     if report['version'] != VERSION or report['launcher'] != 'MidRadio-Directory.exe':
         raise ValueError('This is not the intended English + Directory build')
-    required = {'MidRadio-Directory.exe', 'MidRadioDecode.exe', 'PlayerCore.dll', 'CoreOriginal.dll'}
+    required = {'MidRadio.exe', 'MidRadio-Directory.exe', 'MidRadioDecode.exe', 'PlayerCore.dll', 'CoreOriginal.dll'}
     if not required.issubset(report['files']) or 'Addins/OggFormat.dll' in report['files']:
         raise ValueError('Wrong or experimental binary set')
     files = []

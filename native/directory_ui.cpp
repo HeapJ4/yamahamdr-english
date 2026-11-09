@@ -3,6 +3,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include "directory_ui.h"
 #include "skin_english.h"
+#include "wav_export.h"
+#include <commdlg.h>
 #include <commctrl.h>
 #include <windowsx.h>
 #include <wininet.h>
@@ -12,11 +14,12 @@
 #include <memory>
 #include <set>
 #include <atomic>
+#include "runtime_log.h"
 
 namespace {
-constexpr UINT WM_RESULT=WM_APP+421, WM_NAVIGATE=WM_APP+422, WM_PARENT_LAYOUT=WM_APP+423, WM_INITIALIZE=WM_APP+424, WM_STATUS=WM_APP+425;
+constexpr UINT WM_RESULT=WM_APP+421, WM_NAVIGATE=WM_APP+422, WM_PARENT_LAYOUT=WM_APP+423, WM_STATUS=WM_APP+425;
 constexpr int ID_ADDRESS=1101, ID_GO=1102, ID_UP=1103, ID_SEARCH=1104,
-              ID_LIST=1105, ID_PLAY=1106, ID_STATUS=1107, ID_PLAY_SELECTED=1108;
+              ID_LIST=1105, ID_PLAY=1106, ID_STATUS=1107, ID_PLAY_SELECTED=1108, ID_EXPORT=1109, ID_FINISH=1110;
 constexpr size_t MAX_HTML=4*1024*1024, MAX_ENTRIES=20000;
 const wchar_t CLASS_NAME[]=L"MidRadioDirectoryPaneV1";
 struct Entry {std::wstring title,url; bool directory=false;};
@@ -27,7 +30,40 @@ HWND pane=nullptr,mainWindow=nullptr,address=nullptr,searchBox=nullptr,list=null
 HFONT font=nullptr;
 int originalHeight=0;
 unsigned generation=0;
-WNDPROC originalParentProc=nullptr;
+const UINT WM_INITIALIZE=RegisterWindowMessageW(L"HeapJ4.MidRadio.Directory.Initialize.1");
+HHOOK initializeHook=nullptr;
+bool adjustingFrame=false,interactiveResize=false;
+int reservedHeight=0;
+using ClientRectFn=BOOL(WINAPI*)(HWND,LPRECT);
+ClientRectFn nativeClientRect=nullptr;
+BOOL WINAPI YamahaClientRect(HWND h,LPRECT r){
+ BOOL ok=nativeClientRect(h,r);
+ if(ok&&h==mainWindow&&reservedHeight)r->bottom=std::max(r->top,r->bottom-reservedHeight);
+ return ok;
+}
+void HookClientRect(){
+ auto base=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr));
+ auto dos=reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+ auto nt=reinterpret_cast<IMAGE_NT_HEADERS32*>(base+dos->e_lfanew);
+ auto rva=nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress;
+ if(!rva)return;
+ auto libs=reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base+rva);
+ for(;libs->Name;++libs){
+  if(_stricmp(reinterpret_cast<char*>(base+libs->Name),"user32.dll")||!libs->OriginalFirstThunk)continue;
+  auto names=reinterpret_cast<IMAGE_THUNK_DATA32*>(base+libs->OriginalFirstThunk);
+  auto slots=reinterpret_cast<IMAGE_THUNK_DATA32*>(base+libs->FirstThunk);
+  for(;names->u1.AddressOfData;++names,++slots){
+   if(IMAGE_SNAP_BY_ORDINAL32(names->u1.Ordinal))continue;
+   auto name=reinterpret_cast<IMAGE_IMPORT_BY_NAME*>(base+names->u1.AddressOfData);
+   if(strcmp(reinterpret_cast<char*>(name->Name),"GetClientRect"))continue;
+   if(slots->u1.Function==reinterpret_cast<DWORD>(YamahaClientRect))return;
+   DWORD old=0;if(!VirtualProtect(&slots->u1.Function,4,PAGE_READWRITE,&old))return;
+   nativeClientRect=reinterpret_cast<ClientRectFn>(slots->u1.Function);
+   InterlockedExchangePointer(reinterpret_cast<PVOID volatile*>(&slots->u1.Function),reinterpret_cast<void*>(YamahaClientRect));
+   DWORD ignored;VirtualProtect(&slots->u1.Function,4,old,&ignored);return;
+  }
+ }
+}
 std::vector<Entry> entries;
 std::vector<size_t> visible;
 std::wstring currentURL;
@@ -83,6 +119,7 @@ DWORD WINAPI Fetch(void* ptr){
  struct Completion {~Completion(){--outstanding;}} completion;
  const ULONGLONG deadline=GetTickCount64()+45000;
  std::unique_ptr<Request> req(static_cast<Request*>(ptr));std::unique_ptr<Result> r(new Result);r->generation=req->generation;r->url=req->url;
+ try {
  InternetHandle session(InternetOpenW(L"MidRadio Directory Browser/1.0",INTERNET_OPEN_TYPE_PRECONFIG,nullptr,nullptr,0));
  if(!session)r->error=L"Could not initialize the network connection.";
  else {DWORD timeout=15000;InternetSetOptionW(session,INTERNET_OPTION_CONNECT_TIMEOUT,&timeout,sizeof(timeout));InternetSetOptionW(session,INTERNET_OPTION_RECEIVE_TIMEOUT,&timeout,sizeof(timeout));InternetSetOptionW(session,INTERNET_OPTION_SEND_TIMEOUT,&timeout,sizeof(timeout));
@@ -97,6 +134,7 @@ DWORD WINAPI Fetch(void* ptr){
    }
   }
  }
+ }catch(const std::exception& e){runtimeLog("directory worker exception: %s",e.what());r->error=L"Directory request failed while processing the response.";}catch(...){r->error=L"Directory request failed unexpectedly.";}
  if(IsWindow(req->window)&&PostMessageW(req->window,WM_RESULT,0,reinterpret_cast<LPARAM>(r.get())))r.release();
  return 0;
 }
@@ -105,18 +143,69 @@ void Navigate(const std::wstring& raw){std::wstring url=Trim(raw);if(url.empty()
 void Activate(){int row=ListView_GetNextItem(list,-1,LVNI_SELECTED);if(row<0||size_t(row)>=visible.size())return;auto e=entries[visible[row]];if(e.directory)Navigate(e.url);else if(OpenTrackURL(e.url,e.title))Status(L"Opening "+e.title);else Status(L"Could not open "+e.title+L". Check the playback status.");}
 void PlaySelected(){int row=ListView_GetNextItem(list,-1,LVNI_SELECTED);if(row<0||size_t(row)>=visible.size()||entries[visible[row]].directory){Status(L"Select an audio file, then click Play selected.");return;}Activate();}
 void PlayAll(){std::vector<std::pair<std::wstring,std::wstring>> tracks;for(size_t i:visible)if(!entries[i].directory)tracks.push_back({entries[i].url,entries[i].title});if(tracks.empty()){Status(L"No supported tracks in the current view.");return;}if(OpenTrackPlaylist(tracks,currentURL))Status(L"Loaded "+std::to_wstring(tracks.size())+L" tracks into the playlist.");else Status(L"Could not load the playlist.");}
+void ExportSelected(){
+ int row=ListView_GetNextItem(list,-1,LVNI_SELECTED);
+ if(row<0||size_t(row)>=visible.size()||entries[visible[row]].directory){Status(L"Select a track to render, then click Export WAV.");return;}
+ auto entry=entries[visible[row]];std::wstring suggested=entry.title;
+ for(auto& c:suggested)if(c<32||wcschr(L"<>:\"/\\|?*",c))c=L'_';
+ auto dot=suggested.find_last_of(L'.');if(dot!=suggested.npos)suggested.resize(dot);
+ if(suggested.empty())suggested=L"MidRadio export";
+ wchar_t path[MAX_PATH]={};wcsncpy(path,(suggested.substr(0,180)+L".wav").c_str(),MAX_PATH-1);
+ OPENFILENAMEW dialog={};dialog.lStructSize=sizeof(dialog);dialog.hwndOwner=pane;
+ dialog.lpstrFilter=L"PCM WAV audio (*.wav)\0*.wav\0\0";dialog.lpstrFile=path;dialog.nMaxFile=MAX_PATH;
+ dialog.lpstrDefExt=L"wav";dialog.lpstrTitle=L"Render selected track to WAV";
+ dialog.Flags=OFN_OVERWRITEPROMPT|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
+ if(!GetSaveFileNameW(&dialog))return;
+ if(_wcsicmp(PathFindExtensionW(path),L".wav")){Status(L"Choose a destination ending in .wav.");return;}
+ if(ExportTrackWav(entry.url,entry.title,path))Status(L"Preparing WAV export. Use the built-in Yamaha software synthesizer.");
+}
 void CopyLink(){int row=ListView_GetNextItem(list,-1,LVNI_SELECTED);if(row<0||size_t(row)>=visible.size())return;auto& u=entries[visible[row]].url;if(!OpenClipboard(pane))return;HGLOBAL mem=GlobalAlloc(GMEM_MOVEABLE,(u.size()+1)*sizeof(wchar_t));if(mem){void* p=GlobalLock(mem);if(p){memcpy(p,u.c_str(),(u.size()+1)*sizeof(wchar_t));GlobalUnlock(mem);EmptyClipboard();if(!SetClipboardData(CF_UNICODETEXT,mem))GlobalFree(mem);}else GlobalFree(mem);}CloseClipboard();}
-void Layout(){RECT r;GetClientRect(pane,&r);int w=r.right,h=r.bottom;int pad=10,gap=6;int addrWidth=std::max(50,w-216);MoveWindow(GetDlgItem(pane,ID_UP),pad,pad,40,26,TRUE);MoveWindow(address,pad+46,pad,addrWidth,26,TRUE);MoveWindow(GetDlgItem(pane,ID_GO),w-104,pad,94,26,TRUE);MoveWindow(searchBox,pad,42,std::max(50,w-256),25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY_SELECTED),w-240,42,118,25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY),w-116,42,106,25,TRUE);MoveWindow(list,pad,74,std::max(30,w-pad*2),std::max(30,h-104),TRUE);MoveWindow(status,pad,std::max(110,h-25),std::max(30,w-pad*2),20,TRUE);ListView_SetColumnWidth(list,0,std::max(120,w*45/100));ListView_SetColumnWidth(list,1,60);ListView_SetColumnWidth(list,2,std::max(120,w*50/100-90));(void)gap;}
+void Layout(){RECT r;GetClientRect(pane,&r);int w=r.right,h=r.bottom;int pad=10,gap=6;int addrWidth=std::max(50,w-216);MoveWindow(GetDlgItem(pane,ID_UP),pad,pad,40,26,TRUE);MoveWindow(address,pad+46,pad,addrWidth,26,TRUE);MoveWindow(GetDlgItem(pane,ID_GO),w-104,pad,94,26,TRUE);MoveWindow(searchBox,pad,42,std::max(50,w-500),25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY_SELECTED),w-484,42,116,25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY),w-362,42,94,25,TRUE);MoveWindow(GetDlgItem(pane,ID_EXPORT),w-262,42,116,25,TRUE);MoveWindow(GetDlgItem(pane,ID_FINISH),w-140,42,130,25,TRUE);MoveWindow(list,pad,74,std::max(30,w-pad*2),std::max(30,h-104),TRUE);MoveWindow(status,pad,std::max(110,h-25),std::max(30,w-pad*2),20,TRUE);ListView_SetColumnWidth(list,0,std::max(120,w*45/100));ListView_SetColumnWidth(list,1,60);ListView_SetColumnWidth(list,2,std::max(120,w*50/100-90));(void)gap;}
 LRESULT CALLBACK EditProc(HWND h,UINT msg,WPARAM wp,LPARAM lp,UINT_PTR id,DWORD_PTR){if(msg==WM_GETDLGCODE&&wp==VK_RETURN)return DLGC_WANTALLKEYS;if(msg==WM_KEYDOWN&&wp==VK_RETURN){if(h==address)Navigate(Text(address));else if(h==list)Activate();return 0;}if(msg==WM_NCDESTROY)RemoveWindowSubclass(h,EditProc,id);return DefSubclassProc(h,msg,wp,lp);}
 void InitializePane(HWND target);
-LRESULT CALLBACK ParentProc(HWND h,UINT msg,WPARAM wp,LPARAM lp){if(msg==WM_INITIALIZE){InitializePane(h);return 0;}LRESULT ret=CallWindowProcW(originalParentProc,h,msg,wp,lp);if(msg==WM_SIZE&&pane){RECT r;GetClientRect(h,&r);int top=std::min(originalHeight,std::max(0,int(r.bottom)-180));PostMessageW(pane,WM_PARENT_LAYOUT,WPARAM(top),MAKELPARAM(r.right,std::max(0,int(r.bottom)-top)));}if(msg==WM_NCDESTROY){SetWindowLongPtrW(h,GWLP_WNDPROC,reinterpret_cast<LONG_PTR>(originalParentProc));mainWindow=nullptr;}return ret;}
+LRESULT CALLBACK ParentProc(HWND h,UINT msg,WPARAM wp,LPARAM lp,UINT_PTR id,DWORD_PTR){
+ if(msg==WM_ENTERSIZEMOVE)interactiveResize=true;
+ if(msg==WM_EXITSIZEMOVE)interactiveResize=false;
+ if(msg==WM_WINDOWPOSCHANGING&&pane&&!adjustingFrame&&!interactiveResize){
+  auto pos=reinterpret_cast<WINDOWPOS*>(lp);
+  if(!(pos->flags&SWP_NOSIZE)){
+   RECT current={};GetWindowRect(h,&current);
+   if(pos->cy!=current.bottom-current.top||pos->cx!=current.right-current.left){
+    // Yamaha requests a native skin size. Reserve additional space exactly once.
+    reservedHeight=pos->cx>=660?340:0;
+    pos->cy+=reservedHeight;
+   }
+  }
+ }
+ LPARAM nativeSize=lp;
+ if(msg==WM_SIZE&&wp!=SIZE_MINIMIZED&&reservedHeight)
+  nativeSize=MAKELPARAM(LOWORD(lp),std::max(0,int(HIWORD(lp))-reservedHeight));
+ LRESULT ret=DefSubclassProc(h,msg,wp,nativeSize);
+ if(msg==WM_SIZE&&pane&&wp!=SIZE_MINIMIZED){
+  RECT r={};GetClientRect(h,&r);
+  bool full=reservedHeight&&r.right>=660;
+  ShowWindow(pane,full?SW_SHOWNOACTIVATE:SW_HIDE);
+  if(full)PostMessageW(pane,WM_PARENT_LAYOUT,WPARAM(std::max(0,int(r.bottom)-reservedHeight)),MAKELPARAM(r.right,reservedHeight));
+  runtimeLog("layout mode client=%ldx%ld reserved=%d",r.right,r.bottom,reservedHeight);
+ }
+ if(msg==WM_NCDESTROY){RemoveWindowSubclass(h,ParentProc,id);mainWindow=nullptr;reservedHeight=0;}
+ return ret;
+}
+LRESULT CALLBACK InitializeOnGUIThread(int code,WPARAM wp,LPARAM lp){
+ if(code>=0){auto m=reinterpret_cast<CWPSTRUCT*>(lp);
+  if(m->message==WM_INITIALIZE&&m->hwnd==mainWindow){
+   if(SetWindowSubclass(mainWindow,ParentProc,0x4d524431,0))InitializePane(mainWindow);
+  }
+ }
+ return CallNextHookEx(initializeHook,code,wp,lp);
+}
 LRESULT CALLBACK PaneProc(HWND h,UINT msg,WPARAM wp,LPARAM lp){
  switch(msg){
- case WM_CREATE:{pane=h;auto make=[&](const wchar_t*c,const wchar_t*t,DWORD style,int id){HWND v=CreateWindowExW((wcscmp(c,L"EDIT")==0||wcscmp(c,WC_LISTVIEWW)==0)?WS_EX_CLIENTEDGE:0,c,t,WS_CHILD|WS_VISIBLE|style,0,0,1,1,h,HMENU(INT_PTR(id)),moduleHandle,nullptr);SendMessageW(v,WM_SETFONT,WPARAM(font),TRUE);return v;};make(L"BUTTON",L"Up",BS_PUSHBUTTON,ID_UP);address=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_ADDRESS);SendMessageW(address,EM_SETCUEBANNER,TRUE,LPARAM(L"https://3.onj.me/phonetones/unzipped/Samsung/SGH-D500/"));make(L"BUTTON",L"Open folder",BS_PUSHBUTTON|WS_TABSTOP,ID_GO);searchBox=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_SEARCH);SendMessageW(searchBox,EM_SETCUEBANNER,TRUE,LPARAM(L"Filter files and folders"));make(L"BUTTON",L"Play selected",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY_SELECTED);make(L"BUTTON",L"Play all",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY);list=make(WC_LISTVIEWW,L"",LVS_REPORT|LVS_SINGLESEL|LVS_SHOWSELALWAYS|WS_TABSTOP,ID_LIST);ListView_SetExtendedListViewStyle(list,LVS_EX_FULLROWSELECT|LVS_EX_DOUBLEBUFFER|LVS_EX_LABELTIP);LVCOLUMNW col={};col.mask=LVCF_TEXT|LVCF_WIDTH;col.cx=220;col.pszText=const_cast<wchar_t*>(L"Name");ListView_InsertColumn(list,0,&col);col.cx=60;col.pszText=const_cast<wchar_t*>(L"Type");ListView_InsertColumn(list,1,&col);col.cx=280;col.pszText=const_cast<wchar_t*>(L"Address");ListView_InsertColumn(list,2,&col);status=make(L"STATIC",L"Web directory · Yamaha, WAV, MP3, OGG, M4A",SS_LEFT,ID_STATUS);SetWindowSubclass(address,EditProc,1,0);SetWindowSubclass(list,EditProc,2,0);Layout();return 0;}
+ case WM_CREATE:{pane=h;auto make=[&](const wchar_t*c,const wchar_t*t,DWORD style,int id){HWND v=CreateWindowExW((wcscmp(c,L"EDIT")==0||wcscmp(c,WC_LISTVIEWW)==0)?WS_EX_CLIENTEDGE:0,c,t,WS_CHILD|WS_VISIBLE|style,0,0,1,1,h,HMENU(INT_PTR(id)),moduleHandle,nullptr);SendMessageW(v,WM_SETFONT,WPARAM(font),TRUE);return v;};make(L"BUTTON",L"Up",BS_PUSHBUTTON,ID_UP);address=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_ADDRESS);SendMessageW(address,EM_SETCUEBANNER,TRUE,LPARAM(L"https://3.onj.me/phonetones/unzipped/Samsung/SGH-D500/"));make(L"BUTTON",L"Open folder",BS_PUSHBUTTON|WS_TABSTOP,ID_GO);searchBox=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_SEARCH);SendMessageW(searchBox,EM_SETCUEBANNER,TRUE,LPARAM(L"Filter files and folders"));make(L"BUTTON",L"Play selected",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY_SELECTED);make(L"BUTTON",L"Play all",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY);make(L"BUTTON",L"Export WAV",BS_PUSHBUTTON|WS_TABSTOP,ID_EXPORT);make(L"BUTTON",L"Finish export",BS_PUSHBUTTON|WS_TABSTOP,ID_FINISH);list=make(WC_LISTVIEWW,L"",LVS_REPORT|LVS_SINGLESEL|LVS_SHOWSELALWAYS|WS_TABSTOP,ID_LIST);ListView_SetExtendedListViewStyle(list,LVS_EX_FULLROWSELECT|LVS_EX_DOUBLEBUFFER|LVS_EX_LABELTIP);LVCOLUMNW col={};col.mask=LVCF_TEXT|LVCF_WIDTH;col.cx=220;col.pszText=const_cast<wchar_t*>(L"Name");ListView_InsertColumn(list,0,&col);col.cx=60;col.pszText=const_cast<wchar_t*>(L"Type");ListView_InsertColumn(list,1,&col);col.cx=280;col.pszText=const_cast<wchar_t*>(L"Address");ListView_InsertColumn(list,2,&col);status=make(L"STATIC",L"Web directory · Yamaha, WAV, MP3, OGG, M4A",SS_LEFT,ID_STATUS);SetWindowSubclass(address,EditProc,1,0);SetWindowSubclass(list,EditProc,2,0);Layout();return 0;}
  case WM_SIZE:Layout();return 0;
- case WM_PARENT_LAYOUT:MoveWindow(h,0,int(wp),LOWORD(lp),HIWORD(lp),TRUE);SetWindowPos(h,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);return 0;
- case WM_TIMER:if(wp==1)SetWindowPos(h,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);return 0;
- case WM_COMMAND:if(LOWORD(wp)==ID_GO)Navigate(Text(address));else if(LOWORD(wp)==ID_UP){auto u=Resolve(currentURL.empty()?Text(address):currentURL,L"../");if(!u.empty())Navigate(u);}else if(LOWORD(wp)==ID_PLAY)PlayAll();else if(LOWORD(wp)==ID_PLAY_SELECTED)PlaySelected();else if(LOWORD(wp)==ID_SEARCH&&HIWORD(wp)==EN_CHANGE)Refill();return 0;
+ case WM_PARENT_LAYOUT:MoveWindow(h,0,int(wp),LOWORD(lp),HIWORD(lp),TRUE);return 0;
+ case WM_TIMER:if(wp==1){bool exporting=WaveExportActive();EnableWindow(GetDlgItem(h,ID_EXPORT),!exporting);EnableWindow(GetDlgItem(h,ID_FINISH),exporting);}return 0;
+ case WM_COMMAND:if(LOWORD(wp)==ID_GO)Navigate(Text(address));else if(LOWORD(wp)==ID_UP){auto u=Resolve(currentURL.empty()?Text(address):currentURL,L"../");if(!u.empty())Navigate(u);}else if(LOWORD(wp)==ID_PLAY)PlayAll();else if(LOWORD(wp)==ID_PLAY_SELECTED)PlaySelected();else if(LOWORD(wp)==ID_EXPORT)ExportSelected();else if(LOWORD(wp)==ID_FINISH)FinishWaveExport();else if(LOWORD(wp)==ID_SEARCH&&HIWORD(wp)==EN_CHANGE)Refill();return 0;
  case WM_NOTIFY:{auto nm=reinterpret_cast<NMHDR*>(lp);if(nm->idFrom==ID_LIST){if(nm->code==NM_DBLCLK){Activate();return 0;}if(nm->code==LVN_KEYDOWN&&reinterpret_cast<NMLVKEYDOWN*>(lp)->wVKey==VK_RETURN){Activate();return 0;}}break;}
  case WM_CONTEXTMENU:if(HWND(wp)==list){POINT pt{GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};if(pt.x==-1){GetCursorPos(&pt);}else{POINT local=pt;ScreenToClient(list,&local);LVHITTESTINFO hit={};hit.pt=local;int row=ListView_HitTest(list,&hit);if(row>=0)ListView_SetItemState(list,row,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);}HMENU menu=CreatePopupMenu();AppendMenuW(menu,MF_STRING,1,L"Open / Play");AppendMenuW(menu,MF_STRING,2,L"Copy full URL");int cmd=TrackPopupMenu(menu,TPM_RETURNCMD|TPM_RIGHTBUTTON,pt.x,pt.y,0,h,nullptr);DestroyMenu(menu);if(cmd==1)Activate();if(cmd==2)CopyLink();return 0;}break;
  case WM_NAVIGATE:{std::unique_ptr<std::wstring> u(reinterpret_cast<std::wstring*>(lp));Navigate(*u);return 0;}
@@ -126,7 +215,7 @@ LRESULT CALLBACK PaneProc(HWND h,UINT msg,WPARAM wp,LPARAM lp){
  }
  return DefWindowProcW(h,msg,wp,lp);
 }
-BOOL CALLBACK FindMain(HWND h,LPARAM param){DWORD pid=0;GetWindowThreadProcessId(h,&pid);if(pid==GetCurrentProcessId()&&IsWindowVisible(h)&&!GetWindow(h,GW_OWNER)){wchar_t title[256]={};GetWindowTextW(h,title,256);std::wstring lower=Lower(title);if(lower.find(L"midradio")!=std::wstring::npos){*reinterpret_cast<HWND*>(param)=h;return FALSE;}}return TRUE;}
+BOOL CALLBACK FindMain(HWND h,LPARAM param){DWORD pid=0;GetWindowThreadProcessId(h,&pid);if(pid==GetCurrentProcessId()&&IsWindowVisible(h)&&!GetWindow(h,GW_OWNER)){wchar_t title[256]={};GetWindowTextW(h,title,256);std::wstring lower=Lower(title);wchar_t className[256]={};GetClassNameW(h,className,256);if(lower.find(L"midradio")!=std::wstring::npos&&wcsstr(className,L"_MainFrame")){*reinterpret_cast<HWND*>(param)=h;return FALSE;}}return TRUE;}
 void InitializePane(HWND target){
  if(pane||!IsWindow(target))return;
  // All widgets are created on MidRadio's GUI thread and share its input queue.
@@ -139,14 +228,19 @@ void InitializePane(HWND target){
  cls.lpszClassName=CLASS_NAME;RegisterClassW(&cls);
  RECT client,window;GetClientRect(target,&client);GetWindowRect(target,&window);
  originalHeight=client.bottom;
+ HookClientRect();
+ reservedHeight=client.right>=660?340:0;
  HWND child=CreateWindowExW(WS_EX_CONTROLPARENT,CLASS_NAME,L"Web directory",
    WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,0,originalHeight,
    std::max(660L,client.right),340,target,nullptr,moduleHandle,nullptr);
  if(!child){DeleteObject(font);font=nullptr;return;}
  SetTimer(child,1,500,nullptr);
  SetWindowPos(child,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
- SetWindowPos(target,nullptr,0,0,std::max(680L,window.right-window.left),
-   window.bottom-window.top+340,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+ adjustingFrame=true;
+ if(reservedHeight)SetWindowPos(target,nullptr,0,0,window.right-window.left,
+   window.bottom-window.top+reservedHeight,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+ adjustingFrame=false;
+ if(!reservedHeight)ShowWindow(child,SW_HIDE);
  RECT resized;GetClientRect(target,&resized);
  MoveWindow(child,0,originalHeight,resized.right,std::max(180L,resized.bottom-originalHeight),TRUE);
  AcquireSRWLockExclusive(&pendingLock);auto initial=std::move(pendingURL);
@@ -163,9 +257,11 @@ DWORD WINAPI UIThread(void*){
  if(!target)return 0;
  Sleep(1000);if(!IsWindow(target))return 0;
  mainWindow=target;
- originalParentProc=reinterpret_cast<WNDPROC>(GetWindowLongPtrW(target,GWLP_WNDPROC));
- SetWindowLongPtrW(target,GWLP_WNDPROC,reinterpret_cast<LONG_PTR>(ParentProc));
+ initializeHook=SetWindowsHookExW(WH_CALLWNDPROC,InitializeOnGUIThread,moduleHandle,GetWindowThreadProcessId(target,nullptr));
+ if(!initializeHook){runtimeLog("GUI initialization hook failed: %lu",GetLastError());return 0;}
  PostMessageW(target,WM_INITIALIZE,0,0);
+ for(int i=0;i<100&&!pane&&IsWindow(target);++i)Sleep(50);
+ UnhookWindowsHookEx(initializeHook);initializeHook=nullptr;
  return 0;
 }
 }

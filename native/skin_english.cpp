@@ -146,11 +146,18 @@ LRESULT CALLBACK OverlayProc(HWND h,UINT message,WPARAM wp,LPARAM lp){
  if(message==WM_ERASEBKGND)return 1;
  if(message==WM_TIMER){
   RECT parent;GetClientRect(skinParent,&parent);
+  // Compact Yamaha modes have different artwork and geometry. Never paint
+  // standard-skin labels on them or raise overlays during a native menu loop.
+  GUITHREADINFO gui={};gui.cbSize=sizeof(gui);
+  GetGUIThreadInfo(GetWindowThreadProcessId(skinParent,nullptr),&gui);
+  bool visible=parent.right>=660&&parent.bottom>=111&&!(gui.flags&GUI_INMENUMODE);
+  ShowWindow(h,visible?SW_SHOWNOACTIVATE:SW_HIDE);
+  if(!visible)return 0;
   int x=index==0?parent.right-128:index==1?parent.right-296:131;
   int y=index==0?45:index==1?60:79;
   int width=index==0?112:index==1?DetailsWidth:47;
   int height=index==0?20:index==1?13:12;
-  SetWindowPos(h,HWND_TOP,x,y,width,height,SWP_NOACTIVATE);
+  SetWindowPos(h,nullptr,x,y,width,height,SWP_NOACTIVATE|SWP_NOZORDER);
   if(index==2)ReadRepeatGroup();
   InvalidateRect(h,nullptr,FALSE);return 0;
  }

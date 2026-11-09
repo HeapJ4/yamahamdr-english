@@ -2,6 +2,8 @@
 
 # Follow-up diagnosis — 2026-11-08
 
+**Update:** MMF/MIDI WAV export is implemented and live-tested in 1.0; the diagnosis below describes the earlier 0.2.1 state. / **Обновление:** экспорт реализован и проверен в 1.0; ниже описано прежнее состояние 0.2.1.
+
 <a name="english"></a>
 
 ## English

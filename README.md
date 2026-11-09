@@ -10,13 +10,13 @@
 
 ## English
 
-**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **0.2.1** combines the features in one portable folder.
+**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **1.0** combines the features in one portable folder.
 
 ### Download and run
 
-1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v0.2.1-windows-x64.zip`**.
+1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v1.0-windows-x64.zip`**.
 2. Close other copies of MidRadio, right-click the ZIP, and choose **Extract All**.
-3. Keep all files and `Addins` together. Run **`MidRadio-Directory.exe`**.
+3. Keep all files and `Addins` together. Run **`MidRadio.exe`** (the small C launcher for `MidRadio-Directory.exe`).
 
 No Python, installer, or administrator rights are needed to launch the package. Target: **Windows 10 x64**; the user also confirms the directory build on **Windows 11 x64**. The original player is x86, running through WoW64. A clean Windows 10 machine has not been independently tested. The player may retain preferences in the Windows registry.
 
@@ -28,6 +28,23 @@ The directory pane is embedded below the original skinned player. It starts at t
 - Double-click folders to navigate; use **Up** to go to the parent.
 - Filter names, then use **Play selected** for one track or **Play all** for the visible list.
 - Right-click a row and choose **Copy full URL** to copy its link.
+
+### MMF / GM MIDI → WAV, inside the player
+
+1. Select an MMF/SMAF or MIDI track in the directory pane.
+2. Click **Export WAV**, choose a `.wav` destination, and press Save.
+3. Let Yamaha play and render the track using its **built-in software synthesizer**.
+4. Click **Finish export** when finished. Closing/resetting the audio device also finalizes the file automatically.
+
+This is real-time rendering of Yamaha's own PCM output, not renaming a file, a separate converter app, microphone recording, or system-audio loopback. It preserves the engine's synthesis and effects. Hardware MIDI output does not provide PCM; use the built-in software synth. Pause pauses the generated audio; stopping/closing the track can finalize the export. The output limit is 1 GiB. Keep the player open until the status says **Saved WAV**.
+
+Live validation produced a non-silent 44.1 kHz, 16-bit stereo WAV from a native MMF track (31.211 seconds) and a GM piano MIDI fixture (3.697 seconds). See [export validation](docs/wav-export.md).
+
+### Stability and recovery
+
+The directory area yields to compact skins rather than covering their controls. Menu-loop overlays pause, and GUI setup runs on Yamaha's own UI thread. Headless tests cover 100 compact/full-size layout round trips; the final build's reported View → Edit interaction and all real display modes were not manually rechecked.
+
+Export creates a unique sibling `.partial-…wav` and checkpoints its header every two seconds of audio. Your chosen destination is replaced only after successful finalization. A crash can leave a partial recording; preserve that file for recovery. If no PCM starts within 30 seconds, export stops with an explanation. Network/decoder work runs outside the UI thread with timeouts, and `runtime.log` records extension errors. These safeguards do not make the original Yamaha engine crash-proof.
 
 ### Audio and native Yamaha files
 
@@ -84,13 +101,13 @@ Patch code: [MIT](LICENSE). Yamaha components retain their original ownership an
 
 ## Русский
 
-**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **0.2.1** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
+**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **1.0** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
 
 ### Загрузка и запуск
 
-1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v0.2.1-windows-x64.zip`**.
+1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v1.0-windows-x64.zip`**.
 2. Закройте другие копии MidRadio. Нажмите на ZIP правой кнопкой мыши и выберите **«Извлечь всё»**.
-3. Не разделяйте файлы и папку `Addins`. Запустите **`MidRadio-Directory.exe`**.
+3. Не разделяйте файлы и папку `Addins`. Запустите **`MidRadio.exe`**.
 
 Python, установщик и права администратора для запуска не нужны. Основная система — **Windows 10 x64**; пользователь также подтвердил работу сборки с браузером каталогов в **Windows 11 x64**. Исходный плеер остаётся 32-разрядным и работает через WoW64. Чистая установка Windows 10 отдельно не проверялась. Настройки плеера могут сохраняться в реестре Windows.
 
@@ -102,6 +119,17 @@ Python, установщик и права администратора для �
 - Двойной щелчок открывает папку; **Up** возвращает в родительский каталог.
 - Используйте фильтр, **Play selected** для выбранного файла или **Play all** для видимого списка.
 - Правая кнопка мыши → **Copy full URL** копирует ссылку.
+
+### MMF / GM MIDI → WAV в самом плеере
+
+1. Выберите MMF/SMAF или MIDI в браузере каталогов.
+2. Нажмите **Export WAV**, укажите файл `.wav` и сохраните.
+3. Дождитесь воспроизведения и рендеринга **встроенным программным синтезатором Yamaha**.
+4. Нажмите **Finish export**. Закрытие или сброс аудиоустройства также завершает запись автоматически.
+
+Экспорт работает в реальном времени и сохраняет PCM, сформированный самой Yamaha, включая синтез и эффекты. Это не переименование файла, отдельная программа-конвертер, запись микрофона или всего системного звука. Аппаратный MIDI не выдаёт PCM: используйте встроенный программный синтезатор. Остановка или закрытие композиции может завершить экспорт. Лимит — 1 ГиБ. Не закрывайте плеер до сообщения **Saved WAV**.
+
+В живой проверке из MMF получен непустой стерео WAV 44,1 кГц / 16 бит длительностью 31,211 с; из тестового GM MIDI — 3,697 с. См. [проверку экспорта](docs/wav-export.md).
 
 ### Форматы
 
@@ -146,3 +174,7 @@ CI собирает нативные компоненты x86 и проверя�
 Код патчера: [MIT](LICENSE). Материалы Yamaha сохраняют исходные права: [NOTICE.md](NOTICE.md). Лицензия stb_vorbis приведена в [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Проект независим и не связан с Yamaha.
 
 [↑ English](#english) · [↑ Русский](#russian)
+
+### Устойчивость и восстановление
+
+В компактных режимах каталог скрывается, чтобы не закрывать родные элементы Yamaha. Заголовок промежуточного WAV обновляется каждые две секунды аудио; основной файл заменяется лишь после успешного завершения. После аварии сохраните `.partial-…wav` для восстановления. При отсутствии PCM в течение 30 секунд экспорт прекращается с объяснением. Диагностика записывается в `runtime.log`. Автотесты проверяют геометрию, но конкретный сбой View → Edit и все настоящие режимы финальной сборки вручную повторно не проверены.

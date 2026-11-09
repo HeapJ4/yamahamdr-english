@@ -6,7 +6,7 @@ static void runtimeLog(const char* format,...) {
     char text[2048];va_list args;va_start(args,format);vsnprintf(text,sizeof(text),format,args);va_end(args);
     wchar_t path[32768];GetModuleFileNameW(nullptr,path,32768);wchar_t* p=wcsrchr(path,L'\\');if(!p)return;wcscpy(p+1,L"runtime.log");
     HANDLE h=CreateFileW(path,FILE_APPEND_DATA,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);
-    if(h!=INVALID_HANDLE_VALUE){DWORD n;WriteFile(h,text,(DWORD)strlen(text),&n,nullptr);WriteFile(h,"\r\n",2,&n,nullptr);CloseHandle(h);}
+    if(h!=INVALID_HANDLE_VALUE){SYSTEMTIME now={};GetLocalTime(&now);char prefix[96];int length=snprintf(prefix,sizeof(prefix),"%04u-%02u-%02u %02u:%02u:%02u pid=%lu tid=%lu ",now.wYear,now.wMonth,now.wDay,now.wHour,now.wMinute,now.wSecond,GetCurrentProcessId(),GetCurrentThreadId());DWORD n;WriteFile(h,prefix,length,&n,nullptr);WriteFile(h,text,(DWORD)strlen(text),&n,nullptr);WriteFile(h,"\r\n",2,&n,nullptr);CloseHandle(h);}
 }
 static LONG WINAPI runtimeCrash(EXCEPTION_POINTERS* info) {
     MEMORY_BASIC_INFORMATION m={};VirtualQuery((void*)info->ContextRecord->Eip,&m,sizeof(m));
