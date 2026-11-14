@@ -21,6 +21,8 @@ jobs:
           CXX=i686-w64-mingw32-g++-posix
           COMMON="-finput-charset=UTF-8 -fexec-charset=UTF-8 -D_WIN32_WINNT=0x0601 -std=c++17 -O2 -static -static-libgcc -static-libstdc++"
           $CXX $COMMON -shared -o native-bin/PlayerCore.dll native/core_proxy.cpp native/directory_ui.cpp native/skin_english.cpp native/media_prepare.cpp native/wav_export.cpp native/core_proxy.def -lcomctl32 -lwininet -lshlwapi -lgdi32 -luser32 -lshell32 -lcomdlg32
+          $CXX $COMMON -municode -mwindows -o native-bin/MidRadioReport.exe native/issue_report.cpp -lshell32 -lgdi32 -luser32
+          $CXX $COMMON -o native-bin/report-tests.exe native/issue_report_tests.cpp
           $CXX $COMMON -municode -o native-bin/MidRadioDecode.exe native/codec_decoder.cpp -lmfplat -lmfreadwrite -lmfuuid -lole32
           $CXX $COMMON -municode -o native-bin/skin-tests.exe native/skin_english_tests.cpp -lgdi32 -luser32
           $CXX $COMMON -municode -o native-bin/media-tests.exe native/media_prepare_tests.cpp native/media_prepare.cpp -lwininet -lshlwapi
@@ -62,6 +64,11 @@ jobs:
           & native-bin/directory-tests.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & native-bin/export-tests.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & native-bin/report-tests.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $report = Start-Process -FilePath (Resolve-Path native-bin/MidRadioReport.exe).Path -ArgumentList "--self-test" -WindowStyle Hidden -Wait -PassThru
+          if ($report.ExitCode -ne 0) { exit $report.ExitCode }
       - name: Package source
         run: python pack.py
       - name: Upload source package and checksums
