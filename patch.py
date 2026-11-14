@@ -13,7 +13,7 @@ import sys
 from pe_resources import resources, text_fields
 
 HERE = Path(__file__).resolve().parent
-VERSION = '1.0'
+VERSION = '1.0.1'
 
 
 def load_translations(path=HERE / 'translations.txt'):
