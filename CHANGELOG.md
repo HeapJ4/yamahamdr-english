@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.2 — Startup hotfix
+
+- Add a GitHub-style issue composer with Write/Preview, formatting, optional basic diagnostics, copy/paste fallback for long descriptions, and a Report issue button. Bundle MidRadioReport.exe so reporting also works independently of player startup. No embedded token or automatic log uploads. Test both the URL/draft logic and the actual hidden reporter form.
+
+- Fix the v1.0/v1.0.1 startup regression: posted initialization messages were watched with a sent-message hook. Use WH_GETMESSAGE and its MSG/PM_REMOVE contract so directory controls and English skin labels initialize on the owning GUI thread.
+- Add a headless posted-message startup regression that actually creates the directory pane and checks its MIDI-WAV EXPORT button. Retain 100 compact/full-size geometry round trips.
+- Log missing main windows, failed hooks/posts, failed font/class/pane creation, receipt of initialization, timeouts and successful initialization. Allow 15 seconds for the owner thread to consume startup.
+- Keep MIDI-WAV EXPORT, MMF/SMAF support and WAV safeguards. Avoid returning a zero-sized native client area while the extended frame is first being created.
+
+Исправлен запуск: обработчик WH_GETMESSAGE получает поставленное в очередь сообщение и запускает браузер каталогов и английские графические подписи. Добавлена проверка создания панели и кнопки MIDI-WAV EXPORT, расширена диагностика запуска.
+
+
 ## 1.0.1
 
 - Rename the directory seeker export button to **MIDI-WAV EXPORT** and widen it to fit. MMF/SMAF export remains supported.

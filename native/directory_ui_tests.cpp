@@ -1,4 +1,5 @@
 // Focused parser and URL tests. This test translation unit includes the implementation.
+#define MIDRADIO_HEADLESS_TESTING
 #include "directory_ui.cpp"
 #include <cassert>
 #include <iostream>
@@ -30,8 +31,30 @@ void TestModeLayout(){
  assert(privateMessages==100);
  DestroyWindow(mainWindow);pane=nullptr;assert(!mainWindow);
 }
+void TestPostedStartup(){
+ moduleHandle=GetModuleHandleW(nullptr);
+ WNDCLASSW cls={};cls.lpfnWndProc=TestParent;cls.hInstance=moduleHandle;cls.lpszClassName=L"MidRadioStartupTest";
+ RegisterClassW(&cls);
+ HWND target=CreateWindowW(cls.lpszClassName,L"",WS_POPUP,0,0,800,111,nullptr,nullptr,moduleHandle,nullptr);assert(target);
+ assert(PostGUIInitialization(target));
+ ULONGLONG deadline=GetTickCount64()+2000;
+ while(!pane&&GetTickCount64()<deadline){
+  MSG message;
+  while(PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){TranslateMessage(&message);DispatchMessageW(&message);}
+  Sleep(1);
+ }
+ assert(pane&&IsChild(target,pane));
+ assert(GetWindowThreadProcessId(pane,nullptr)==GetCurrentThreadId());
+ wchar_t label[64]={};GetWindowTextW(GetDlgItem(pane,ID_EXPORT),label,64);
+ assert(wcscmp(label,L"MIDI-WAV EXPORT")==0);
+ assert(GetDlgItem(pane,ID_REPORT));
+ UnhookWindowsHookEx(initializeHook);initializeHook=nullptr;
+ DestroyWindow(target);assert(!pane&&!mainWindow);
+ std::cout<<"Posted startup message created the directory pane on the owning GUI thread.\n";
+}
 int main(){
  TestModeLayout();
+ TestPostedStartup();
  assert(DecodeEntities(L"A &amp; B &#x1f3b5;")==L"A & B \U0001f3b5");
  assert(DecodeEntities(L"&unknown; &#garbage;")==L"&unknown; &#garbage;");
  assert(PercentDecode(L"%E6%97%A5%E6%9C%AC%20file.mmf")==L"日本 file.mmf");

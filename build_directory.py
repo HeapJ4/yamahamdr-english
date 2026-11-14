@@ -17,6 +17,8 @@ def build(source, output, compiler):
     machine = subprocess.check_output([compiler, '-dumpmachine'], text=True).strip()
     if not machine.startswith(('i686-', 'i386-')):
         raise ValueError('The Yamaha player needs an x86 compiler, not an x64 compiler.')
+    if ('L"' + patch.VERSION + '"') not in (ROOT / 'native/app_version.h').read_text(encoding='utf-8'):
+        raise ValueError('The issue reporter version does not match the package version.')
     patch.build(source, output)
     output = Path(output).resolve()
     executable = (output / 'MidRadio-English.exe').read_bytes()
@@ -53,6 +55,8 @@ def compile_native(output, compiler):
     subprocess.run(common + ['-shared', '-o', str(output / 'PlayerCore.dll')] +
                    [str(native / name) for name in ('core_proxy.cpp', 'directory_ui.cpp', 'skin_english.cpp', 'media_prepare.cpp', 'wav_export.cpp', 'core_proxy.def')] +
                    ['-lcomctl32', '-lwininet', '-lshlwapi', '-lgdi32', '-luser32', '-lshell32', '-lcomdlg32'], check=True)
+    subprocess.run(common + ['-municode', '-mwindows', '-o', str(output / 'MidRadioReport.exe'), str(native / 'issue_report.cpp'),
+                            '-lshell32', '-lgdi32', '-luser32'], check=True)
     subprocess.run(common + ['-municode', '-o', str(output / 'MidRadioDecode.exe'), str(native / 'codec_decoder.cpp'),
                             '-lmfplat', '-lmfreadwrite', '-lmfuuid', '-lole32'], check=True)
 

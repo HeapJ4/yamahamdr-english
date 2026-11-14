@@ -19,7 +19,7 @@
 namespace {
 constexpr UINT WM_RESULT=WM_APP+421, WM_NAVIGATE=WM_APP+422, WM_PARENT_LAYOUT=WM_APP+423, WM_STATUS=WM_APP+425;
 constexpr int ID_ADDRESS=1101, ID_GO=1102, ID_UP=1103, ID_SEARCH=1104,
-              ID_LIST=1105, ID_PLAY=1106, ID_STATUS=1107, ID_PLAY_SELECTED=1108, ID_EXPORT=1109, ID_FINISH=1110;
+              ID_LIST=1105, ID_PLAY=1106, ID_STATUS=1107, ID_PLAY_SELECTED=1108, ID_EXPORT=1109, ID_FINISH=1110, ID_REPORT=1111;
 constexpr size_t MAX_HTML=4*1024*1024, MAX_ENTRIES=20000;
 const wchar_t CLASS_NAME[]=L"MidRadioDirectoryPaneV1";
 struct Entry {std::wstring title,url; bool directory=false;};
@@ -38,7 +38,7 @@ using ClientRectFn=BOOL(WINAPI*)(HWND,LPRECT);
 ClientRectFn nativeClientRect=nullptr;
 BOOL WINAPI YamahaClientRect(HWND h,LPRECT r){
  BOOL ok=nativeClientRect(h,r);
- if(ok&&h==mainWindow&&reservedHeight)r->bottom=std::max(r->top,r->bottom-reservedHeight);
+ if(ok&&h==mainWindow&&reservedHeight&&r->bottom-r->top>=reservedHeight)r->bottom=std::max(r->top,r->bottom-reservedHeight);
  return ok;
 }
 void HookClientRect(){
@@ -159,8 +159,20 @@ void ExportSelected(){
  if(_wcsicmp(PathFindExtensionW(path),L".wav")){Status(L"Choose a destination ending in .wav.");return;}
  if(ExportTrackWav(entry.url,entry.title,path))Status(L"Preparing WAV export. Use the built-in Yamaha software synthesizer.");
 }
+void ReportIssue(){
+ wchar_t module[32768]={};
+ if(!GetModuleFileNameW(moduleHandle,module,32768)){Status(L"Could not locate the issue reporter.");return;}
+ PathRemoveFileSpecW(module);std::wstring folder=module;
+ std::wstring exe=folder+L"\\MidRadioReport.exe",command=L"\""+exe+L"\"";
+ STARTUPINFOW startup={};startup.cb=sizeof(startup);PROCESS_INFORMATION process={};
+ std::vector<wchar_t> args(command.begin(),command.end());args.push_back(0);
+ if(!CreateProcessW(exe.c_str(),args.data(),nullptr,nullptr,FALSE,0,nullptr,folder.c_str(),&startup,&process)){
+  Status(L"Could not open MidRadioReport.exe. Keep the entire portable package together.");return;
+ }
+ CloseHandle(process.hThread);CloseHandle(process.hProcess);
+}
 void CopyLink(){int row=ListView_GetNextItem(list,-1,LVNI_SELECTED);if(row<0||size_t(row)>=visible.size())return;auto& u=entries[visible[row]].url;if(!OpenClipboard(pane))return;HGLOBAL mem=GlobalAlloc(GMEM_MOVEABLE,(u.size()+1)*sizeof(wchar_t));if(mem){void* p=GlobalLock(mem);if(p){memcpy(p,u.c_str(),(u.size()+1)*sizeof(wchar_t));GlobalUnlock(mem);EmptyClipboard();if(!SetClipboardData(CF_UNICODETEXT,mem))GlobalFree(mem);}else GlobalFree(mem);}CloseClipboard();}
-void Layout(){RECT r;GetClientRect(pane,&r);int w=r.right,h=r.bottom;int pad=10,gap=6;int addrWidth=std::max(50,w-216);MoveWindow(GetDlgItem(pane,ID_UP),pad,pad,40,26,TRUE);MoveWindow(address,pad+46,pad,addrWidth,26,TRUE);MoveWindow(GetDlgItem(pane,ID_GO),w-104,pad,94,26,TRUE);MoveWindow(searchBox,pad,42,std::max(50,w-540),25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY_SELECTED),w-524,42,116,25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY),w-402,42,94,25,TRUE);MoveWindow(GetDlgItem(pane,ID_EXPORT),w-302,42,156,25,TRUE);MoveWindow(GetDlgItem(pane,ID_FINISH),w-140,42,130,25,TRUE);MoveWindow(list,pad,74,std::max(30,w-pad*2),std::max(30,h-104),TRUE);MoveWindow(status,pad,std::max(110,h-25),std::max(30,w-pad*2),20,TRUE);ListView_SetColumnWidth(list,0,std::max(120,w*45/100));ListView_SetColumnWidth(list,1,60);ListView_SetColumnWidth(list,2,std::max(120,w*50/100-90));(void)gap;}
+void Layout(){RECT r;GetClientRect(pane,&r);int w=r.right,h=r.bottom;int pad=10,gap=6;int addrWidth=std::max(50,w-326);MoveWindow(GetDlgItem(pane,ID_UP),pad,pad,40,26,TRUE);MoveWindow(address,pad+46,pad,addrWidth,26,TRUE);MoveWindow(GetDlgItem(pane,ID_GO),w-214,pad,94,26,TRUE);MoveWindow(GetDlgItem(pane,ID_REPORT),w-114,pad,104,26,TRUE);MoveWindow(searchBox,pad,42,std::max(50,w-540),25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY_SELECTED),w-524,42,116,25,TRUE);MoveWindow(GetDlgItem(pane,ID_PLAY),w-402,42,94,25,TRUE);MoveWindow(GetDlgItem(pane,ID_EXPORT),w-302,42,156,25,TRUE);MoveWindow(GetDlgItem(pane,ID_FINISH),w-140,42,130,25,TRUE);MoveWindow(list,pad,74,std::max(30,w-pad*2),std::max(30,h-104),TRUE);MoveWindow(status,pad,std::max(110,h-25),std::max(30,w-pad*2),20,TRUE);ListView_SetColumnWidth(list,0,std::max(120,w*45/100));ListView_SetColumnWidth(list,1,60);ListView_SetColumnWidth(list,2,std::max(120,w*50/100-90));(void)gap;}
 LRESULT CALLBACK EditProc(HWND h,UINT msg,WPARAM wp,LPARAM lp,UINT_PTR id,DWORD_PTR){if(msg==WM_GETDLGCODE&&wp==VK_RETURN)return DLGC_WANTALLKEYS;if(msg==WM_KEYDOWN&&wp==VK_RETURN){if(h==address)Navigate(Text(address));else if(h==list)Activate();return 0;}if(msg==WM_NCDESTROY)RemoveWindowSubclass(h,EditProc,id);return DefSubclassProc(h,msg,wp,lp);}
 void InitializePane(HWND target);
 LRESULT CALLBACK ParentProc(HWND h,UINT msg,WPARAM wp,LPARAM lp,UINT_PTR id,DWORD_PTR){
@@ -192,20 +204,35 @@ LRESULT CALLBACK ParentProc(HWND h,UINT msg,WPARAM wp,LPARAM lp,UINT_PTR id,DWOR
  return ret;
 }
 LRESULT CALLBACK InitializeOnGUIThread(int code,WPARAM wp,LPARAM lp){
- if(code>=0){auto m=reinterpret_cast<CWPSTRUCT*>(lp);
+ if(code>=0&&wp==PM_REMOVE){auto m=reinterpret_cast<MSG*>(lp);
   if(m->message==WM_INITIALIZE&&m->hwnd==mainWindow){
-   if(SetWindowSubclass(mainWindow,ParentProc,0x4d524431,0))InitializePane(mainWindow);
+   if(!pane){
+    runtimeLog("posted GUI initialization received on owner thread");
+    if(SetWindowSubclass(mainWindow,ParentProc,0x4d524431,0))InitializePane(mainWindow);
+    else runtimeLog("main-window subclass installation failed: %lu",GetLastError());
+   }
   }
  }
  return CallNextHookEx(initializeHook,code,wp,lp);
 }
+bool PostGUIInitialization(HWND target){
+ mainWindow=target;
+ // PostMessage queues a MSG; WH_CALLWNDPROC only observes sent messages.
+ initializeHook=SetWindowsHookExW(WH_GETMESSAGE,InitializeOnGUIThread,moduleHandle,GetWindowThreadProcessId(target,nullptr));
+ if(!initializeHook){runtimeLog("GUI initialization hook failed: %lu",GetLastError());return false;}
+ if(!PostMessageW(target,WM_INITIALIZE,0,0)){
+  runtimeLog("GUI initialization post failed: %lu",GetLastError());
+  UnhookWindowsHookEx(initializeHook);initializeHook=nullptr;return false;
+ }
+ runtimeLog("GUI initialization queued for main window %p",target);return true;
+}
 LRESULT CALLBACK PaneProc(HWND h,UINT msg,WPARAM wp,LPARAM lp){
  switch(msg){
- case WM_CREATE:{pane=h;auto make=[&](const wchar_t*c,const wchar_t*t,DWORD style,int id){HWND v=CreateWindowExW((wcscmp(c,L"EDIT")==0||wcscmp(c,WC_LISTVIEWW)==0)?WS_EX_CLIENTEDGE:0,c,t,WS_CHILD|WS_VISIBLE|style,0,0,1,1,h,HMENU(INT_PTR(id)),moduleHandle,nullptr);SendMessageW(v,WM_SETFONT,WPARAM(font),TRUE);return v;};make(L"BUTTON",L"Up",BS_PUSHBUTTON,ID_UP);address=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_ADDRESS);SendMessageW(address,EM_SETCUEBANNER,TRUE,LPARAM(L"https://3.onj.me/phonetones/unzipped/Samsung/SGH-D500/"));make(L"BUTTON",L"Open folder",BS_PUSHBUTTON|WS_TABSTOP,ID_GO);searchBox=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_SEARCH);SendMessageW(searchBox,EM_SETCUEBANNER,TRUE,LPARAM(L"Filter files and folders"));make(L"BUTTON",L"Play selected",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY_SELECTED);make(L"BUTTON",L"Play all",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY);make(L"BUTTON",L"MIDI-WAV EXPORT",BS_PUSHBUTTON|WS_TABSTOP,ID_EXPORT);make(L"BUTTON",L"Finish export",BS_PUSHBUTTON|WS_TABSTOP,ID_FINISH);list=make(WC_LISTVIEWW,L"",LVS_REPORT|LVS_SINGLESEL|LVS_SHOWSELALWAYS|WS_TABSTOP,ID_LIST);ListView_SetExtendedListViewStyle(list,LVS_EX_FULLROWSELECT|LVS_EX_DOUBLEBUFFER|LVS_EX_LABELTIP);LVCOLUMNW col={};col.mask=LVCF_TEXT|LVCF_WIDTH;col.cx=220;col.pszText=const_cast<wchar_t*>(L"Name");ListView_InsertColumn(list,0,&col);col.cx=60;col.pszText=const_cast<wchar_t*>(L"Type");ListView_InsertColumn(list,1,&col);col.cx=280;col.pszText=const_cast<wchar_t*>(L"Address");ListView_InsertColumn(list,2,&col);status=make(L"STATIC",L"Web directory · Yamaha, WAV, MP3, OGG, M4A",SS_LEFT,ID_STATUS);SetWindowSubclass(address,EditProc,1,0);SetWindowSubclass(list,EditProc,2,0);Layout();return 0;}
+ case WM_CREATE:{pane=h;auto make=[&](const wchar_t*c,const wchar_t*t,DWORD style,int id){HWND v=CreateWindowExW((wcscmp(c,L"EDIT")==0||wcscmp(c,WC_LISTVIEWW)==0)?WS_EX_CLIENTEDGE:0,c,t,WS_CHILD|WS_VISIBLE|style,0,0,1,1,h,HMENU(INT_PTR(id)),moduleHandle,nullptr);SendMessageW(v,WM_SETFONT,WPARAM(font),TRUE);return v;};make(L"BUTTON",L"Up",BS_PUSHBUTTON,ID_UP);address=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_ADDRESS);SendMessageW(address,EM_SETCUEBANNER,TRUE,LPARAM(L"https://3.onj.me/phonetones/unzipped/Samsung/SGH-D500/"));make(L"BUTTON",L"Open folder",BS_PUSHBUTTON|WS_TABSTOP,ID_GO);make(L"BUTTON",L"Report issue",BS_PUSHBUTTON|WS_TABSTOP,ID_REPORT);searchBox=make(L"EDIT",L"",ES_AUTOHSCROLL|WS_TABSTOP,ID_SEARCH);SendMessageW(searchBox,EM_SETCUEBANNER,TRUE,LPARAM(L"Filter files and folders"));make(L"BUTTON",L"Play selected",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY_SELECTED);make(L"BUTTON",L"Play all",BS_PUSHBUTTON|WS_TABSTOP,ID_PLAY);make(L"BUTTON",L"MIDI-WAV EXPORT",BS_PUSHBUTTON|WS_TABSTOP,ID_EXPORT);make(L"BUTTON",L"Finish export",BS_PUSHBUTTON|WS_TABSTOP,ID_FINISH);list=make(WC_LISTVIEWW,L"",LVS_REPORT|LVS_SINGLESEL|LVS_SHOWSELALWAYS|WS_TABSTOP,ID_LIST);ListView_SetExtendedListViewStyle(list,LVS_EX_FULLROWSELECT|LVS_EX_DOUBLEBUFFER|LVS_EX_LABELTIP);LVCOLUMNW col={};col.mask=LVCF_TEXT|LVCF_WIDTH;col.cx=220;col.pszText=const_cast<wchar_t*>(L"Name");ListView_InsertColumn(list,0,&col);col.cx=60;col.pszText=const_cast<wchar_t*>(L"Type");ListView_InsertColumn(list,1,&col);col.cx=280;col.pszText=const_cast<wchar_t*>(L"Address");ListView_InsertColumn(list,2,&col);status=make(L"STATIC",L"Web directory · Yamaha, WAV, MP3, OGG, M4A",SS_LEFT,ID_STATUS);SetWindowSubclass(address,EditProc,1,0);SetWindowSubclass(list,EditProc,2,0);Layout();return 0;}
  case WM_SIZE:Layout();return 0;
  case WM_PARENT_LAYOUT:MoveWindow(h,0,int(wp),LOWORD(lp),HIWORD(lp),TRUE);return 0;
  case WM_TIMER:if(wp==1){bool exporting=WaveExportActive();EnableWindow(GetDlgItem(h,ID_EXPORT),!exporting);EnableWindow(GetDlgItem(h,ID_FINISH),exporting);}return 0;
- case WM_COMMAND:if(LOWORD(wp)==ID_GO)Navigate(Text(address));else if(LOWORD(wp)==ID_UP){auto u=Resolve(currentURL.empty()?Text(address):currentURL,L"../");if(!u.empty())Navigate(u);}else if(LOWORD(wp)==ID_PLAY)PlayAll();else if(LOWORD(wp)==ID_PLAY_SELECTED)PlaySelected();else if(LOWORD(wp)==ID_EXPORT)ExportSelected();else if(LOWORD(wp)==ID_FINISH)FinishWaveExport();else if(LOWORD(wp)==ID_SEARCH&&HIWORD(wp)==EN_CHANGE)Refill();return 0;
+ case WM_COMMAND:if(LOWORD(wp)==ID_REPORT)ReportIssue();else if(LOWORD(wp)==ID_GO)Navigate(Text(address));else if(LOWORD(wp)==ID_UP){auto u=Resolve(currentURL.empty()?Text(address):currentURL,L"../");if(!u.empty())Navigate(u);}else if(LOWORD(wp)==ID_PLAY)PlayAll();else if(LOWORD(wp)==ID_PLAY_SELECTED)PlaySelected();else if(LOWORD(wp)==ID_EXPORT)ExportSelected();else if(LOWORD(wp)==ID_FINISH)FinishWaveExport();else if(LOWORD(wp)==ID_SEARCH&&HIWORD(wp)==EN_CHANGE)Refill();return 0;
  case WM_NOTIFY:{auto nm=reinterpret_cast<NMHDR*>(lp);if(nm->idFrom==ID_LIST){if(nm->code==NM_DBLCLK){Activate();return 0;}if(nm->code==LVN_KEYDOWN&&reinterpret_cast<NMLVKEYDOWN*>(lp)->wVKey==VK_RETURN){Activate();return 0;}}break;}
  case WM_CONTEXTMENU:if(HWND(wp)==list){POINT pt{GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};if(pt.x==-1){GetCursorPos(&pt);}else{POINT local=pt;ScreenToClient(list,&local);LVHITTESTINFO hit={};hit.pt=local;int row=ListView_HitTest(list,&hit);if(row>=0)ListView_SetItemState(list,row,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);}HMENU menu=CreatePopupMenu();AppendMenuW(menu,MF_STRING,1,L"Open / Play");AppendMenuW(menu,MF_STRING,2,L"Copy full URL");int cmd=TrackPopupMenu(menu,TPM_RETURNCMD|TPM_RIGHTBUTTON,pt.x,pt.y,0,h,nullptr);DestroyMenu(menu);if(cmd==1)Activate();if(cmd==2)CopyLink();return 0;}break;
  case WM_NAVIGATE:{std::unique_ptr<std::wstring> u(reinterpret_cast<std::wstring*>(lp));Navigate(*u);return 0;}
@@ -223,17 +250,21 @@ void InitializePane(HWND target){
  NONCLIENTMETRICSW ncm={};ncm.cbSize=sizeof(ncm);
  SystemParametersInfoW(SPI_GETNONCLIENTMETRICS,sizeof(ncm),&ncm,0);
  font=CreateFontIndirectW(&ncm.lfMessageFont);
+ if(!font){runtimeLog("directory font creation failed: %lu",GetLastError());return;}
  WNDCLASSW cls={};cls.lpfnWndProc=PaneProc;cls.hInstance=moduleHandle;
  cls.hCursor=LoadCursorW(nullptr,IDC_ARROW);cls.hbrBackground=GetSysColorBrush(COLOR_BTNFACE);
- cls.lpszClassName=CLASS_NAME;RegisterClassW(&cls);
+ cls.lpszClassName=CLASS_NAME;
+ if(!RegisterClassW(&cls)&&GetLastError()!=ERROR_CLASS_ALREADY_EXISTS){runtimeLog("directory window-class registration failed: %lu",GetLastError());DeleteObject(font);font=nullptr;return;}
  RECT client,window;GetClientRect(target,&client);GetWindowRect(target,&window);
  originalHeight=client.bottom;
+ #ifndef MIDRADIO_HEADLESS_TESTING
  HookClientRect();
+ #endif
  reservedHeight=client.right>=660?340:0;
  HWND child=CreateWindowExW(WS_EX_CONTROLPARENT,CLASS_NAME,L"Web directory",
    WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,0,originalHeight,
    std::max(660L,client.right),340,target,nullptr,moduleHandle,nullptr);
- if(!child){DeleteObject(font);font=nullptr;return;}
+ if(!child){runtimeLog("directory pane creation failed: %lu",GetLastError());reservedHeight=0;DeleteObject(font);font=nullptr;return;}
  SetTimer(child,1,500,nullptr);
  SetWindowPos(child,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
  adjustingFrame=true;
@@ -246,21 +277,22 @@ void InitializePane(HWND target){
  AcquireSRWLockExclusive(&pendingLock);auto initial=std::move(pendingURL);
  pendingURL.clear();ReleaseSRWLockExclusive(&pendingLock);
  if(initial.empty())initial=L"https://3.onj.me/phonetones/unzipped/Samsung/SGH-D500/";
+ #ifndef MIDRADIO_HEADLESS_TESTING
  Navigate(initial);
+ #endif
  #ifndef MIDRADIO_DISABLE_SKIN
  StartEnglishSkinLabels(moduleHandle);
  #endif
+ runtimeLog("directory pane initialized; English skin initialization dispatched");
 }
 DWORD WINAPI UIThread(void*){
  HWND target=nullptr;
  for(int i=0;i<120&&!target;++i){EnumWindows(FindMain,reinterpret_cast<LPARAM>(&target));if(!target)Sleep(500);}
- if(!target)return 0;
+ if(!target){runtimeLog("GUI initialization failed: main window not found within 60 seconds");return 0;}
  Sleep(1000);if(!IsWindow(target))return 0;
- mainWindow=target;
- initializeHook=SetWindowsHookExW(WH_CALLWNDPROC,InitializeOnGUIThread,moduleHandle,GetWindowThreadProcessId(target,nullptr));
- if(!initializeHook){runtimeLog("GUI initialization hook failed: %lu",GetLastError());return 0;}
- PostMessageW(target,WM_INITIALIZE,0,0);
- for(int i=0;i<100&&!pane&&IsWindow(target);++i)Sleep(50);
+ if(!PostGUIInitialization(target))return 0;
+ for(int i=0;i<300&&!pane&&IsWindow(target);++i)Sleep(50);
+ if(!pane)runtimeLog("GUI initialization timed out before pane creation");
  UnhookWindowsHookEx(initializeHook);initializeHook=nullptr;
  return 0;
 }

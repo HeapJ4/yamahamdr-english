@@ -10,11 +10,11 @@
 
 ## English
 
-**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **1.0.1** combines the features in one portable folder.
+**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **1.0.2** combines the features in one portable folder.
 
 ### Download and run
 
-1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v1.0.1-windows-x64.zip`**.
+1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v1.0.2-windows-x64.zip`**.
 2. Close other copies of MidRadio, right-click the ZIP, and choose **Extract All**.
 3. Keep all files and `Addins` together. Run **`MidRadio.exe`** (the small C launcher for `MidRadio-Directory.exe`).
 
@@ -39,6 +39,12 @@ The directory pane is embedded below the original skinned player. It starts at t
 This is real-time rendering of Yamaha's own PCM output, not renaming a file, a separate converter app, microphone recording, or system-audio loopback. It preserves the engine's synthesis and effects. Hardware MIDI output does not provide PCM; use the built-in software synth. Pause pauses the generated audio; stopping/closing the track can finalize the export. The output limit is 1 GiB. Keep the player open until the status says **Saved WAV**.
 
 Live validation produced a non-silent 44.1 kHz, 16-bit stereo WAV from a native MMF track (31.211 seconds) and a GM piano MIDI fixture (3.697 seconds). See [export validation](docs/wav-export.md).
+
+### Report a problem
+
+Click **Report issue** in the directory seeker's top row. The dark issue composer has a title, Markdown description, Write/Preview tabs, formatting shortcuts, Copy report, and Continue on GitHub. GitHub opens a draft for your review and final submission; sign in there if needed. No token is stored in the app, and no logs or attachments upload automatically. Optional basic diagnostics contain only the app version, Windows build and app architecture; the preview shows exactly what will be included. Add screenshots or reviewed logs on GitHub.
+
+If the player fails to start, open **MidRadioReport.exe** directly from the same portable folder. Long descriptions can be copied and pasted into GitHub without being truncated.
 
 ### Stability and recovery
 
@@ -101,11 +107,11 @@ Patch code: [MIT](LICENSE). Yamaha components retain their original ownership an
 
 ## Русский
 
-**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **1.0.1** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
+**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **1.0.2** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
 
 ### Загрузка и запуск
 
-1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v1.0.1-windows-x64.zip`**.
+1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v1.0.2-windows-x64.zip`**.
 2. Закройте другие копии MidRadio. Нажмите на ZIP правой кнопкой мыши и выберите **«Извлечь всё»**.
 3. Не разделяйте файлы и папку `Addins`. Запустите **`MidRadio.exe`**.
 
@@ -178,3 +184,7 @@ CI собирает нативные компоненты x86 и проверя�
 ### Устойчивость и восстановление
 
 В компактных режимах каталог скрывается, чтобы не закрывать родные элементы Yamaha. Заголовок промежуточного WAV обновляется каждые две секунды аудио; основной файл заменяется лишь после успешного завершения. После аварии сохраните `.partial-…wav` для восстановления. При отсутствии PCM в течение 30 секунд экспорт прекращается с объяснением. Диагностика записывается в `runtime.log`. Автотесты проверяют геометрию, но конкретный сбой View → Edit и все настоящие режимы финальной сборки вручную повторно не проверены.
+
+### Сообщить об ошибке
+
+Кнопка **Report issue** в верхнем ряду браузера каталогов открывает тёмную форму с заголовком, описанием Markdown, вкладками Write/Preview, форматированием и Copy report. **Continue on GitHub** открывает черновик для проверки и окончательной отправки на GitHub. Токен в приложении не хранится; файлы и журналы автоматически не загружаются. Необязательная диагностика содержит только версию приложения, сборку Windows и архитектуру, её видно в Preview. Если плеер не запускается, откройте **MidRadioReport.exe** отдельно. Снимки экрана и проверенные журналы добавляются уже на GitHub.
