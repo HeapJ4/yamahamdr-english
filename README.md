@@ -10,11 +10,11 @@
 
 ## English
 
-**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **1.0** combines the features in one portable folder.
+**Yamaha MidRadio Player 7.2.1.1 with English text, English graphical labels, and an embedded HTTP directory seeker.** The original Yamaha skin and window border are retained. Version **1.0.1** combines the features in one portable folder.
 
 ### Download and run
 
-1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v1.0-windows-x64.zip`**.
+1. Open [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) and download **`yamahamdr-english-v1.0.1-windows-x64.zip`**.
 2. Close other copies of MidRadio, right-click the ZIP, and choose **Extract All**.
 3. Keep all files and `Addins` together. Run **`MidRadio.exe`** (the small C launcher for `MidRadio-Directory.exe`).
 
@@ -32,7 +32,7 @@ The directory pane is embedded below the original skinned player. It starts at t
 ### MMF / GM MIDI → WAV, inside the player
 
 1. Select an MMF/SMAF or MIDI track in the directory pane.
-2. Click **Export WAV**, choose a `.wav` destination, and press Save.
+2. Click **MIDI-WAV EXPORT**, choose a `.wav` destination, and press Save.
 3. Let Yamaha play and render the track using its **built-in software synthesizer**.
 4. Click **Finish export** when finished. Closing/resetting the audio device also finalizes the file automatically.
 
@@ -101,11 +101,11 @@ Patch code: [MIT](LICENSE). Yamaha components retain their original ownership an
 
 ## Русский
 
-**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **1.0** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
+**Yamaha MidRadio Player 7.2.1.1 с английским интерфейсом, английскими графическими надписями и встроенным браузером HTTP-каталогов.** Оригинальный скин и рамка окна Yamaha сохранены. Версия **1.0.1** объединяет эти возможности в одной портативной папке. На русский переведена документация; интерфейс программы — английский.
 
 ### Загрузка и запуск
 
-1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v1.0-windows-x64.zip`**.
+1. Откройте [Releases](https://github.com/HeapJ4/yamahamdr-english/releases) и скачайте **`yamahamdr-english-v1.0.1-windows-x64.zip`**.
 2. Закройте другие копии MidRadio. Нажмите на ZIP правой кнопкой мыши и выберите **«Извлечь всё»**.
 3. Не разделяйте файлы и папку `Addins`. Запустите **`MidRadio.exe`**.
 
@@ -123,7 +123,7 @@ Python, установщик и права администратора для �
 ### MMF / GM MIDI → WAV в самом плеере
 
 1. Выберите MMF/SMAF или MIDI в браузере каталогов.
-2. Нажмите **Export WAV**, укажите файл `.wav` и сохраните.
+2. Нажмите **MIDI-WAV EXPORT**, укажите файл `.wav` и сохраните.
 3. Дождитесь воспроизведения и рендеринга **встроенным программным синтезатором Yamaha**.
 4. Нажмите **Finish export**. Закрытие или сброс аудиоустройства также завершает запись автоматически.
 

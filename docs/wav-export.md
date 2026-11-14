@@ -6,7 +6,7 @@
 
 ## English
 
-The directory pane's Export WAV action prepares the selected file, arms the recorder, and opens the track through the original player's loader. The recorder hooks `waveOutOpen`, `waveOutWrite`, `waveOutReset`, `waveOutClose`, and `waveOutRestart` in this process's Yamaha WaveOut, MidiOut, and Smaf modules. SMAF uses its own output route, so hooking only WaveOut is insufficient.
+The directory pane's MIDI-WAV EXPORT action prepares the selected file, arms the recorder, and opens the track through the original player's loader. The recorder hooks `waveOutOpen`, `waveOutWrite`, `waveOutReset`, `waveOutClose`, and `waveOutRestart` in this process's Yamaha WaveOut, MidiOut, and Smaf modules. SMAF uses its own output route, so hooking only WaveOut is insufficient.
 
 PCM is snapshotted before submission, then recorded only after the real waveOutWrite succeeds. The recorder waits for a fresh output start/reset/restart so it does not capture the previous track's queued tail. It selects one audio device, preserves the actual PCM format, and writes/finalizes a standard RIFF/WAVE header. Finish export, output reset, and device close finalize recording. A no-audio attempt is reported as failure rather than producing a pretend conversion.
 
@@ -25,7 +25,7 @@ Both files were created through the actual player UI, observed with Saved WAV st
 
 ## Русский
 
-Кнопка Export WAV подготавливает выбранный файл, включает запись и открывает композицию исходным загрузчиком Yamaha. Перехватываются функции waveOut в модулях WaveOut, MidiOut и Smaf только внутри процесса плеера. У SMAF отдельный путь вывода, поэтому одного WaveOut недостаточно.
+Кнопка MIDI-WAV EXPORT подготавливает выбранный файл, включает запись и открывает композицию исходным загрузчиком Yamaha. Перехватываются функции waveOut в модулях WaveOut, MidiOut и Smaf только внутри процесса плеера. У SMAF отдельный путь вывода, поэтому одного WaveOut недостаточно.
 
 PCM копируется до отправки устройству и записывается только после успешной отправки. Запись ожидает нового запуска/сброса, чтобы не захватить хвост прежней композиции, и выбирает одно устройство. Формат PCM сохраняется. Finish export, сброс и закрытие устройства завершают заголовок RIFF/WAVE. Пустой экспорт выдаёт ошибку, а не ложное сообщение об успешной конвертации.
 

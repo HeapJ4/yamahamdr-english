@@ -16,7 +16,7 @@ SOURCE_FILES = [
 SOURCE_FILES += sorted(path.relative_to(ROOT).as_posix() for directory in ('native', 'tests', 'docs')
                        for path in (ROOT / directory).rglob('*')
                        if path.is_file() and path.suffix.lower() in ('.py', '.cpp', '.h', '.c', '.def', '.md', '.ogg', '.m4a', '.mp3', '.wav', '.mid'))
-PORTABLE_README = """MidRadio English + Directory 1.0
+PORTABLE_README = """MidRadio English + Directory 1.0.1
 
 Windows 10 x64 target; also used on Windows 11 x64.
 Extract everything and run MidRadio.exe. No Python or installer needed.
@@ -27,7 +27,7 @@ Play selected for one track, Play all for the current list, and right-click
 for Copy full URL. The default page is the Samsung SGH-D500 ringtone folder.
 English menus and graphical labels preserve the original Yamaha skin.
 
-Select an MMF/MIDI track and click Export WAV to render it in this same app.
+Select an MMF/MIDI track and click MIDI-WAV EXPORT to render it in this same app.
 Use Yamaha's built-in software synthesizer, let it play, and click Finish export.
 Export is real-time, captures only this player's PCM, and is limited to 1 GiB.
 Keep the app open until Saved WAV appears. Hardware MIDI output has no PCM.

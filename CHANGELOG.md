@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- Rename the directory seeker export button to **MIDI-WAV EXPORT** and widen it to fit. MMF/SMAF export remains supported.
+- Update English/Russian instructions with the visible button name and the real-time export steps.
+
+Изменения: кнопка экспорта в браузере каталогов переименована в **MIDI-WAV EXPORT** и расширена. Экспорт MMF/SMAF сохраняется; обновлены инструкции.
+
+
 ## 1.0
 
 - Include the user-supplied C launcher unchanged.
